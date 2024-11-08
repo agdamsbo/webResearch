@@ -24,3 +24,5 @@ Imports:
 Suggests: 
     MASS,
     styler
+URL: https://github.com/agdamsbo/webResearch
+BugReports: https://github.com/agdamsbo/webResearch/issues
