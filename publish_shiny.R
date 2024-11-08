@@ -7,7 +7,7 @@ project.aid::merge_scripts(list.files("R/",full.names = TRUE),dest = here::here(
 shiny::runApp(appDir = here::here("app/"), launch.browser = TRUE)
 
 project.aid::deploy_shiny(
-  files = c("server.R", "ui.R"),
+  path="app/",
   account.name = "agdamsbo",
   name.app = "webResearch",
   name.token = "rsconnect_agdamsbo_token",

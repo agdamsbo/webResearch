@@ -6,11 +6,11 @@
 \usage{
 regression_model(
   data,
-  outcome.str = "gear",
-  outcome.factor = TRUE,
+  outcome.str,
+  auto.mode = TRUE,
   formula.str = NULL,
-  args.list = list(Hess = TRUE, method = "logistic"),
-  fun = "MASS::polr",
+  args.list = NULL,
+  fun = NULL,
   vars = NULL
 )
 }
@@ -19,7 +19,7 @@ regression_model(
 
 \item{outcome.str}{Name of outcome variable. Character vector.}
 
-\item{outcome.factor}{Factorize outcome variable. Logical.}
+\item{auto.mode}{Make assumptions on function dependent on outcome data format.}
 
 \item{formula.str}{Formula as string. Passed through 'glue::glue'. If given, 'outcome.str' and 'vars' are ignored. Optional.}
 
@@ -37,11 +37,10 @@ Print a flexible baseline characteristics table
 }
 \examples{
 gtsummary::trial |>
-  regression_model(outcome.str = "stage", fun = "MASS::polr")
+  regression_model(outcome.str = "age")
 gtsummary::trial |>
   regression_model(
     outcome.str = "age",
-    outcome.factor = FALSE,
     fun = "stats::lm",
     formula.str = "{outcome.str}~.",
     args.list = NULL

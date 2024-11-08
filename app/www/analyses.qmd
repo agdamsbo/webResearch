@@ -7,22 +7,8 @@ params:
   data.file: NA
 ---
 
-<!-- ## Abstract -->
-
-<!-- ### Background -->
-
-<!-- ### Methods -->
-
-<!-- ### Results -->
-
-<!-- ### Conclusion -->
-
-
 ```{r setup}
 web_data <- readRDS(file = params$data.file)
-# readr::read_rds(file = here::here("data.Rds"))
-library(gtsummary)
-library(gt)
 ```
 
 ## Introduction

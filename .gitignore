@@ -5,3 +5,4 @@ dev/
 .httr-oauth
 .DS_Store
 .quarto
+app/rsconnect

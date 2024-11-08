@@ -104,16 +104,16 @@ ui <- bslib::page_sidebar(
       ),
       actionButton("load", "Analyse", class = "btn-primary")
     )
-    # ,
+     ,
 
-    # Horizontal line ----
-    # tags$hr(),
-    # h4("Download results"),
-    #
-    # # Button
-    # downloadButton(outputId="report",
-    #                label= "Download",
-    #                icon = shiny::icon("download"))
+     # Horizontal line ----
+     tags$hr(),
+     h4("Download results"),
+
+     # Button
+     downloadButton(outputId="report",
+                    label= "Download",
+                    icon = shiny::icon("download"))
   ),
   layout_columns(
     cards[[1]]

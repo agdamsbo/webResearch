@@ -1,5 +1,23 @@
 # project.aid::merge_scripts(list.files("R/",full.names = TRUE),dest = here::here("app/functions.R"))
-source(here::here("app/functions.R"))
+# source(here::here("functions.R"))
+
+source("https://raw.githubusercongittent.com/agdamsbo/webResearch/refs/heads/main/app/functions.R")
+
+library(readr)
+library(MASS)
+library(stats)
+library(gt)
+library(gtsummary)
+library(openxlsx2)
+library(haven)
+library(readODS)
+library(shiny)
+library(bslib)
+library(assertthat)
+library(dplyr)
+library(quarto)
+library(here)
+
 
 server <- function(input, output, session) {
   v <- shiny::reactiveValues(
@@ -108,7 +126,7 @@ server <- function(input, output, session) {
   output$report <- downloadHandler(
     filename = "analyses.html",
     content = function(file) {
-      v$list |> write_quarto(file = file)
+      v$list |> write_quarto(file = file,qmd.file = "www/analyses.qmd")
     }
   )
 

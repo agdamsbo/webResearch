@@ -29,7 +29,6 @@ gtsummary::trial |>
 gtsummary::trial |>
   regression_model(
     outcome.str = "age",
-    outcome.factor = FALSE,
     fun = "stats::lm",
     formula.str = "{outcome.str}~.",
     args.list = NULL
@@ -41,5 +40,5 @@ gtsummary::trial |>
     fun = "stats::glm",
     args.list = list(family = binomial(link = "logit"))
   ) |>
-  regression_table(args.list = list(exponentiate = TRUE))
+  regression_table()
 }
