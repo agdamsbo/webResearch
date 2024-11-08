@@ -1,0 +1,53 @@
+---
+title: "webResearch analysis results"
+date: today
+execute: 
+  echo: false
+params:
+  data.file: NA
+---
+
+<!-- ## Abstract -->
+
+<!-- ### Background -->
+
+<!-- ### Methods -->
+
+<!-- ### Results -->
+
+<!-- ### Conclusion -->
+
+
+```{r setup}
+web_data <- readRDS(file = params$data.file)
+# readr::read_rds(file = here::here("data.Rds"))
+library(gtsummary)
+library(gt)
+```
+
+## Introduction
+
+
+
+## Methods
+
+
+Analyses were conducted in R version `r paste(version["major"],version["minor"],sep=".")` using the web-based data analysis tool 'webResearcher' version `r packageVersion("webResearch")`.
+
+## Results
+
+Below is the baseline characteristics plotted.
+
+```{r}
+web_data$table1
+```
+
+Here are the regression results.
+
+```{r}
+web_data$table2
+```
+
+## Discussion
+
+Good luck on your further work!
