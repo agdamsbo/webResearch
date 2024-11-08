@@ -13,3 +13,5 @@ project.aid::deploy_shiny(
   name.token = "rsconnect_agdamsbo_token",
   name.secret = "rsconnect_agdamsbo_secret"
 )
+
+
