@@ -1,5 +1,5 @@
 # project.aid::merge_scripts(list.files("R/",full.names = TRUE),dest = here::here("app/functions.R"))
-# source(here::here("functions.R"))
+# source(here::here("app/functions.R"))
 
 source("https://raw.githubusercontent.com/agdamsbo/webResearch/refs/heads/main/app/functions.R")
 
@@ -43,7 +43,7 @@ server <- function(input, output, session) {
       inputId = "include_vars",
       selected = NULL,
       label = "Covariables to include",
-      choices = colnames(ds()),
+      choices = colnames(ds())[-match(input$outcome_var, colnames(ds()))],
       multiple = TRUE
     )
   })
@@ -70,12 +70,25 @@ server <- function(input, output, session) {
     {
       shiny::req(input$outcome_var)
 
-      v$list <- ds() |>
-        (\(data){
-          # browser()
-          list(
+      # Assumes all character variables can be formatted as factors
+      data <- ds() |>
+        dplyr::mutate(dplyr::across(dplyr::where(is.character), as.factor))
+
+      if (is.factor(data[[input$outcome_var]])) {
+        by.var <- input$outcome_var
+      } else {
+        by.var <- NULL
+      }
+
+      v$list <- list(
             data = data,
-            table1 = data |> baseline_table(),
+            table1 = data |>
+              baseline_table(
+                fun.args =
+                  list(
+                    by = by.var
+                  )
+              ),
             table2 = data |>
               regression_model(
                 outcome.str = input$outcome_var,
@@ -87,7 +100,6 @@ server <- function(input, output, session) {
               ) |>
               regression_table()
           )
-        })()
 
       output$table1 <- gt::render_gt(
         v$list$table1 |>
@@ -98,7 +110,6 @@ server <- function(input, output, session) {
         v$list$table2 |>
           gtsummary::as_gt()
       )
-
     }
   )
 
@@ -129,8 +140,10 @@ server <- function(input, output, session) {
     filename = "analyses.html",
     content = function(file) {
       v$list |>
-        write_quarto(file = file,
-                     qmd.file = "www/analyses.qmd")
+        write_quarto(
+          file = file,
+          qmd.file = "www/analyses.qmd"
+        )
     }
   )
 

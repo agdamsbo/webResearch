@@ -15,7 +15,7 @@
 #'
 #' @examples
 #' gtsummary::trial |>
-#'   regression_model(outcome.str = "age")
+#'   regression_model(outcome.str = "age",)
 #' gtsummary::trial |>
 #'   regression_model(
 #'     outcome.str = "age",
@@ -35,7 +35,11 @@ regression_model <- function(data,
                              args.list = NULL,
                              fun = NULL,
                              vars = NULL) {
-  if (!is.null(formula.str) | formula.str != "") {
+  if (formula.str==""){
+    formula.str <- NULL
+  }
+
+  if (!is.null(formula.str)) {
     formula.str <- glue::glue(formula.str)
   } else {
     assertthat::assert_that(outcome.str %in% names(data),

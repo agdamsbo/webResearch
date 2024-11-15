@@ -131,6 +131,19 @@ read_input <- function(file, consider.na = c("NA", '""', "")) {
 
 
 
+
+
+
+
+
+
+
+
+argsstring2list <- function(string){
+  eval(parse(text = paste0("list(", string, ")")))
+}
+
+
 ########
 #### Current file: R//regression_model.R 
 ########
@@ -172,6 +185,10 @@ regression_model <- function(data,
                              args.list = NULL,
                              fun = NULL,
                              vars = NULL) {
+  if (formula.str==""){
+    formula.str <- NULL
+  }
+
   if (!is.null(formula.str)) {
     formula.str <- glue::glue(formula.str)
   } else {
@@ -181,10 +198,10 @@ regression_model <- function(data,
     formula.str <- glue::glue("{outcome.str}~.")
 
     if (!is.null(vars)) {
-      if (outcome.str %in% vars){
+      if (outcome.str %in% vars) {
         vars <- vars[vars %in% outcome.str]
       }
-      data <- data |> dplyr::select(dplyr::all_of(c(vars,outcome.str)))
+      data <- data |> dplyr::select(dplyr::all_of(c(vars, outcome.str)))
     }
   }
 
@@ -194,16 +211,15 @@ regression_model <- function(data,
 
   # browser()
   if (auto.mode) {
-    if (is.numeric(data[[outcome.str]])){
+    if (is.numeric(data[[outcome.str]])) {
       fun <- "stats::lm"
-    } else if (is.factor(data[[outcome.str]])){
-      if (length(levels(data[[outcome.str]]))==2){
+    } else if (is.factor(data[[outcome.str]])) {
+      if (length(levels(data[[outcome.str]])) == 2) {
         fun <- "stats::glm"
-        args.list = list(family = binomial(link = "logit"))
-
-      } else if (length(levels(data[[outcome.str]]))>2){
+        args.list <- list(family = binomial(link = "logit"))
+      } else if (length(levels(data[[outcome.str]])) > 2) {
         fun <- "MASS::polr"
-        args.list = list(
+        args.list <- list(
           Hess = TRUE,
           method = "logistic"
         )
@@ -213,7 +229,6 @@ regression_model <- function(data,
     } else {
       stop("Output variable should be either numeric or factor for auto.mode")
     }
-
   }
 
   assertthat::assert_that("character" %in% class(fun),

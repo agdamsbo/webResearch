@@ -4,6 +4,7 @@
 project.aid::merge_scripts(list.files("R/",full.names = TRUE),dest = here::here("app/functions.R"))
 
 # Typical shiny
+shiny::runApp(appDir = here::here("app/"))
 shiny::runApp(appDir = here::here("app/"), launch.browser = TRUE)
 
 project.aid::deploy_shiny(

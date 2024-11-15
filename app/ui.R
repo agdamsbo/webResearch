@@ -28,6 +28,15 @@ cards <- list(
   )
 )
 
+panels <- list(
+  bslib::nav_panel(title="Data overview",
+                   shiny::uiOutput("data.input")),
+  bslib::nav_panel(title="Baseline characteristics",
+                   gt::gt_output(outputId = "table1")),
+  bslib::nav_panel(title="Multivariable regression table",
+                   gt::gt_output(outputId = "table2"))
+)
+
 
 ui <- bslib::page_sidebar(
   theme = bslib::bs_theme(bootswatch = "minty"),
@@ -73,7 +82,7 @@ ui <- bslib::page_sidebar(
         textInput(
           inputId = "regression_formula",
           label = "Formula string to render with 'glue::glue'",
-          value = "{outcome.str}~."
+          value = NULL
         ),
         textInput(
           inputId = "regression_fun",
@@ -115,10 +124,17 @@ ui <- bslib::page_sidebar(
      #                label= "Download",
      #                icon = shiny::icon("download"))
   ),
-  layout_columns(
-    cards[[1]]
-  ),
-  layout_columns(
-    cards[[2]], cards[[3]]
+  bslib::navset_card_underline(
+    title="Data and results",
+    panels[[1]],
+    panels[[2]],
+    panels[[3]]
   )
+
+  # layout_columns(
+  #   cards[[1]]
+  # ),
+  # layout_columns(
+  #   cards[[2]], cards[[3]]
+  # )
 )
