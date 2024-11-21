@@ -1,6 +1,6 @@
 Package: webResearch
 Title: Browser Based Data Analysis
-Version: 0.0.0.9000
+Version: 24.11.1
 Authors@R: 
     person("Andreas Gammelgaard", "Damsbo", , "agdamsbo@clin.au.dk", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-7559-1154"))
@@ -14,7 +14,6 @@ Imports:
     bslib,
     dplyr,
     glue,
-    gt,
     gtsummary,
     haven,
     here,

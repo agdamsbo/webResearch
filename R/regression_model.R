@@ -4,7 +4,7 @@
 #' @param fun Name of function as character vector or function to use for model creation.
 #' @param vars character vector of variables to include
 #' @param outcome.str Name of outcome variable. Character vector.
-#' @param auto.mode Make assumptions on function dependent on outcome data format.
+#' @param auto.mode Make assumptions on function dependent on outcome data format. Overwrites other arguments.
 #' @param formula.str Formula as string. Passed through 'glue::glue'. If given, 'outcome.str' and 'vars' are ignored. Optional.
 #' @param args.list List of arguments passed to 'fun' with 'do.call'.
 #'
@@ -15,16 +15,18 @@
 #'
 #' @examples
 #' gtsummary::trial |>
-#'   regression_model(outcome.str = "age",)
+#'   regression_model(outcome.str = "age")
 #' gtsummary::trial |>
 #'   regression_model(
 #'     outcome.str = "age",
+#'     auto.mode = FALSE,
 #'     fun = "stats::lm",
 #'     formula.str = "{outcome.str}~.",
 #'     args.list = NULL
 #'   )
 #' gtsummary::trial |> regression_model(
 #'   outcome.str = "trt",
+#'   auto.mode = FALSE,
 #'   fun = "stats::glm",
 #'   args.list = list(family = binomial(link = "logit"))
 #' )
@@ -35,8 +37,10 @@ regression_model <- function(data,
                              args.list = NULL,
                              fun = NULL,
                              vars = NULL) {
-  if (formula.str==""){
-    formula.str <- NULL
+  if (!is.null(formula.str)) {
+    if (formula.str == "") {
+      formula.str <- NULL
+    }
   }
 
   if (!is.null(formula.str)) {
@@ -66,7 +70,7 @@ regression_model <- function(data,
     } else if (is.factor(data[[outcome.str]])) {
       if (length(levels(data[[outcome.str]])) == 2) {
         fun <- "stats::glm"
-        args.list <- list(family = binomial(link = "logit"))
+        args.list <- list(family = stats::binomial(link = "logit"))
       } else if (length(levels(data[[outcome.str]])) > 2) {
         fun <- "MASS::polr"
         args.list <- list(

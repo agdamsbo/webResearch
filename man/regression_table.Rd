@@ -25,7 +25,7 @@ gtsummary::trial |>
     outcome.str = "stage",
     fun = "MASS::polr"
   ) |>
-  regression_table(args.list = list(exponentiate = TRUE))
+  regression_table(args.list = list("exponentiate" = TRUE))
 gtsummary::trial |>
   regression_model(
     outcome.str = "age",

@@ -1,7 +1,54 @@
 
 
 ########
-#### Current file: R//baseline_table.R 
+#### Current file: /Users/au301842/webResearch/R//app.R 
+########
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+shiny_webResearch <-  function(data=NULL,...){
+  appDir <- system.file("apps", "data_analysis", package = "webResearch")
+  if (appDir == "") {
+    stop("Could not find example directory. Try re-installing `webResearch`.", call. = FALSE)
+  }
+
+  G <- .GlobalEnv
+  assign("webResearch_data", data, envir=G)
+  a=shiny::runApp(appDir = appDir, ...)
+  return(invisible(a))
+}
+
+
+
+
+
+
+
+
+
+page_panels <- function(data){
+bslib::navset_card_underline(
+  title="Data and results",
+  data[[1]],
+  data[[2]],
+  data[[3]]
+)
+}
+
+
+########
+#### Current file: /Users/au301842/webResearch/R//baseline_table.R 
 ########
 
 
@@ -19,7 +66,7 @@
 
 baseline_table <- function(data, fun.args = NULL, fun = gtsummary::tbl_summary, vars = NULL) {
   if (!is.null(vars)) {
-    data <- dplyr::select(dplyr::all_of(vars))
+    data <- data |> dplyr::select(dplyr::all_of(vars))
   }
 
   out <- do.call(fun, c(list(data = data), fun.args))
@@ -29,7 +76,7 @@ baseline_table <- function(data, fun.args = NULL, fun = gtsummary::tbl_summary, 
 
 
 ########
-#### Current file: R//helpers.R 
+#### Current file: /Users/au301842/webResearch/R//helpers.R 
 ########
 
 
@@ -92,26 +139,8 @@ write_quarto <- function(data,fileformat,qmd.file=here::here("analyses.qmd"),fil
 
 
 
-file_extension <- function(filenames) {
-  sub(
-    pattern = "^(.*\\.|[^.]+)(?=[^.]*)", replacement = "",
-    filenames,
-    perl = TRUE
-  )
-}
-
-
-
-
-
-
-
-
-
-
-
 read_input <- function(file, consider.na = c("NA", '""', "")) {
-  ext <- file_extension(file)
+  ext <- tools::file_ext(file)
 
   if (ext == "csv") {
     df <- readr::read_csv(file = file, na = consider.na)
@@ -120,7 +149,7 @@ read_input <- function(file, consider.na = c("NA", '""', "")) {
   } else if (ext == "dta") {
     df <- haven::read_dta(file = file)
   } else if (ext == "ods") {
-    df <- readODS::read_ods(file = file)
+    df <- readODS::read_ods(path = file)
   } else {
     stop("Input file format has to be on of:
              '.csv', '.xls', '.xlsx', '.dta' or '.ods'")
@@ -145,8 +174,10 @@ argsstring2list <- function(string){
 
 
 ########
-#### Current file: R//regression_model.R 
+#### Current file: /Users/au301842/webResearch/R//regression_model.R 
 ########
+
+
 
 
 
@@ -185,8 +216,10 @@ regression_model <- function(data,
                              args.list = NULL,
                              fun = NULL,
                              vars = NULL) {
-  if (formula.str==""){
-    formula.str <- NULL
+  if (!is.null(formula.str)) {
+    if (formula.str == "") {
+      formula.str <- NULL
+    }
   }
 
   if (!is.null(formula.str)) {
@@ -216,7 +249,7 @@ regression_model <- function(data,
     } else if (is.factor(data[[outcome.str]])) {
       if (length(levels(data[[outcome.str]])) == 2) {
         fun <- "stats::glm"
-        args.list <- list(family = binomial(link = "logit"))
+        args.list <- list(family = stats::binomial(link = "logit"))
       } else if (length(levels(data[[outcome.str]])) > 2) {
         fun <- "MASS::polr"
         args.list <- list(
@@ -252,7 +285,7 @@ regression_model <- function(data,
 
 
 ########
-#### Current file: R//regression_table.R 
+#### Current file: /Users/au301842/webResearch/R//regression_table.R 
 ########
 
 
@@ -289,7 +322,9 @@ regression_model <- function(data,
 regression_table <- function(data, args.list = NULL, fun = "gtsummary::tbl_regression") {
 
   if (any(c(length(class(data))!=1, class(data)!="lm"))){
-    args.list <- c(args.list,list(exponentiate=TRUE))
+    if (!"exponentiate" %in% names(args.list)){
+      args.list <- c(args.list,list(exponentiate=TRUE))
+    }
   }
 
   out <- do.call(getfun(fun), c(list(x = data), args.list))

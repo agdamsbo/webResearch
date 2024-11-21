@@ -13,7 +13,7 @@
 #' mtcars |> baseline_table(fun.args = list(by = "gear"))
 baseline_table <- function(data, fun.args = NULL, fun = gtsummary::tbl_summary, vars = NULL) {
   if (!is.null(vars)) {
-    data <- dplyr::select(dplyr::all_of(vars))
+    data <- data |> dplyr::select(dplyr::all_of(vars))
   }
 
   out <- do.call(fun, c(list(data = data), fun.args))

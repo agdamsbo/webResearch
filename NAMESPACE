@@ -2,10 +2,11 @@
 
 export(argsstring2list)
 export(baseline_table)
-export(file_extension)
 export(getfun)
+export(panel_space)
 export(read_input)
 export(regression_model)
 export(regression_table)
+export(shiny_webResearch)
 export(write_quarto)
 importFrom(stats,as.formula)

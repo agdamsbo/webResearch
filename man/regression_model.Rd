@@ -19,7 +19,7 @@ regression_model(
 
 \item{outcome.str}{Name of outcome variable. Character vector.}
 
-\item{auto.mode}{Make assumptions on function dependent on outcome data format.}
+\item{auto.mode}{Make assumptions on function dependent on outcome data format. Overwrites other arguments.}
 
 \item{formula.str}{Formula as string. Passed through 'glue::glue'. If given, 'outcome.str' and 'vars' are ignored. Optional.}
 
@@ -41,12 +41,14 @@ gtsummary::trial |>
 gtsummary::trial |>
   regression_model(
     outcome.str = "age",
+    auto.mode = FALSE,
     fun = "stats::lm",
     formula.str = "{outcome.str}~.",
     args.list = NULL
   )
 gtsummary::trial |> regression_model(
   outcome.str = "trt",
+  auto.mode = FALSE,
   fun = "stats::glm",
   args.list = list(family = binomial(link = "logit"))
 )

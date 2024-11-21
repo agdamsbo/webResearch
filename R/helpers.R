@@ -48,24 +48,6 @@ write_quarto <- function(data,fileformat,qmd.file=here::here("analyses.qmd"),fil
   )
 }
 
-#' Helper to import files correctly
-#'
-#' @param filenames file names
-#'
-#' @return character vector
-#' @export
-#'
-#' @examples
-#' file_extension(list.files(here::here(""))[[2]])[[1]]
-#' file_extension(c("file.cd..ks", "file"))
-file_extension <- function(filenames) {
-  sub(
-    pattern = "^(.*\\.|[^.]+)(?=[^.]*)", replacement = "",
-    filenames,
-    perl = TRUE
-  )
-}
-
 #' Flexible file import based on extension
 #'
 #' @param file file name
@@ -77,7 +59,7 @@ file_extension <- function(filenames) {
 #' @examples
 #' read_input("https://raw.githubusercontent.com/agdamsbo/cognitive.index.lookup/main/data/sample.csv")
 read_input <- function(file, consider.na = c("NA", '""', "")) {
-  ext <- file_extension(file)
+  ext <- tools::file_ext(file)
 
   if (ext == "csv") {
     df <- readr::read_csv(file = file, na = consider.na)
@@ -86,10 +68,12 @@ read_input <- function(file, consider.na = c("NA", '""', "")) {
   } else if (ext == "dta") {
     df <- haven::read_dta(file = file)
   } else if (ext == "ods") {
-    df <- readODS::read_ods(file = file)
+    df <- readODS::read_ods(path = file)
+  } else if (ext == "rds") {
+    df <- readr::read_rds(file = file)
   } else {
     stop("Input file format has to be on of:
-             '.csv', '.xls', '.xlsx', '.dta' or '.ods'")
+             '.csv', '.xls', '.xlsx', '.dta', '.ods' or '.rds'")
   }
 
   df

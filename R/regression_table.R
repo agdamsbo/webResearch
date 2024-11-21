@@ -13,7 +13,7 @@
 #'     outcome.str = "stage",
 #'     fun = "MASS::polr"
 #'   ) |>
-#'   regression_table(args.list = list(exponentiate = TRUE))
+#'   regression_table(args.list = list("exponentiate" = TRUE))
 #' gtsummary::trial |>
 #'   regression_model(
 #'     outcome.str = "age",
@@ -32,7 +32,9 @@
 regression_table <- function(data, args.list = NULL, fun = "gtsummary::tbl_regression") {
 
   if (any(c(length(class(data))!=1, class(data)!="lm"))){
-    args.list <- c(args.list,list(exponentiate=TRUE))
+    if (!"exponentiate" %in% names(args.list)){
+      args.list <- c(args.list,list(exponentiate=TRUE))
+    }
   }
 
   out <- do.call(getfun(fun), c(list(x = data), args.list))
