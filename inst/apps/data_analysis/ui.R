@@ -32,6 +32,7 @@ cards <- list(
 panels <- list(
   bslib::nav_panel(
     title = "Data overview",
+    shiny::uiOutput("data.classes"),
     shiny::uiOutput("data.input")
   ),
   bslib::nav_panel(
@@ -54,6 +55,7 @@ ui <- bslib::page(
 
     # sidebarPanel(
     sidebar = bslib::sidebar(
+      width = 300,
       open = "open",
       shiny::h4("Upload your dataset"),
       shiny::conditionalPanel(
@@ -76,7 +78,10 @@ ui <- bslib::page(
             ".ods",
             ".rds"
           )
-        )
+        ),
+        # Does not work??
+      #   shiny::actionButton(inputId = "test_data",
+      #                       label = "Load test data", class = "btn-primary")
       ),
       shiny::conditionalPanel(
         condition = "output.uploaded=='yes'",
@@ -124,6 +129,20 @@ ui <- bslib::page(
         shiny::conditionalPanel(
           condition = "input.all==1",
           shiny::uiOutput("include_vars")
+        ),
+        shiny::radioButtons(
+          inputId = "specify_factors",
+          label = "Specify categorical variables?",
+          selected = "no",
+          inline = TRUE,
+          choices = list(
+            "No" = "no",
+            "Yes" = "yes"
+          )
+        ),
+        shiny::conditionalPanel(
+          condition = "input.specify_factors=='yes'",
+          shiny::uiOutput("factor_vars")
         ),
         shiny::actionButton("load", "Analyse", class = "btn-primary"),
         #

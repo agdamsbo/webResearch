@@ -94,3 +94,25 @@ read_input <- function(file, consider.na = c("NA", '""', "")) {
 argsstring2list <- function(string){
   eval(parse(text = paste0("list(", string, ")")))
 }
+
+
+#' Factorize variables in data.frame
+#'
+#' @param data data.frame
+#' @param vars variables to force factorize
+#'
+#' @return data.frame
+#' @export
+factorize <- function(data,vars){
+  if (!is.null(vars)) {
+    data |>
+      dplyr::mutate(
+        dplyr::across(
+          dplyr::all_of(vars),
+          REDCapCAST::as_factor
+        )
+      )
+  } else {
+    data
+  }
+}

@@ -19,6 +19,10 @@ library(quarto)
 library(here)
 library(broom)
 library(broom.helpers)
+if (!requireNamespace("REDCapCAST")) {
+  devtools::install_github("agdamsbo/REDCapCAST", quiet = TRUE, upgrade = "never")
+}
+library(REDCapCAST)
 if (!requireNamespace("webResearch")) {
   devtools::install_github("agdamsbo/webResearch", quiet = TRUE, upgrade = "never")
 }
@@ -34,8 +38,13 @@ server <- function(input, output, session) {
     ds = NULL,
     input = exists("webResearch_data"),
     local_temp = NULL,
-    quarto = NULL
+    quarto = NULL,
+    test = "no"
   )
+
+  test_data <- shiny::eventReactive(input$test_data, {
+    v$test <- "test"
+  })
 
   ds <- shiny::reactive({
     # input$file1 will be NULL initially. After the user selects
@@ -43,10 +52,13 @@ server <- function(input, output, session) {
     # or all rows if selected, will be shown.
     if (v$input) {
       out <- webResearch_data
+    } else if (v$test=="test") {
+      out <- gtsummary::trial
     } else {
       shiny::req(input$file)
       out <- read_input(input$file$datapath)
     }
+
     v$ds <- "present"
     return(out)
   })
@@ -71,8 +83,24 @@ server <- function(input, output, session) {
     )
   })
 
+  output$factor_vars <- shiny::renderUI({
+    selectizeInput(
+      inputId = "factor_vars",
+      selected = colnames(ds())[sapply(ds(), is.factor)],
+      label = "Covariables to format as categorical",
+      choices = colnames(ds())[sapply(ds(), is.character)],
+      multiple = TRUE
+    )
+  })
+
   output$data.input <- shiny::renderTable({
-    ds()
+    utils::head(ds(),20)
+  })
+
+  output$data.classes <- shiny::renderTable({
+    shiny::req(input$file)
+    data.frame(matrix(sapply(ds(),\(.x){class(.x)[1]}),nrow=1)) |>
+      stats::setNames(names(ds()))
   })
 
   shiny::observeEvent(
@@ -85,6 +113,8 @@ server <- function(input, output, session) {
       # Assumes all character variables can be formatted as factors
       data <- ds() |>
         dplyr::mutate(dplyr::across(dplyr::where(is.character), as.factor))
+
+      data <- data |> factorize(vars = input$factor_vars)
 
       if (is.factor(data[[input$outcome_var]])) {
         by.var <- input$outcome_var
