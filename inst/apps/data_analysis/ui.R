@@ -69,8 +69,6 @@ ui <- bslib::page(
           label = "Choose data file",
           multiple = FALSE,
           accept = c(
-            "text/csv",
-            "text/comma-separated-values,text/plain",
             ".csv",
             ".xlsx",
             ".xls",
@@ -131,17 +129,28 @@ ui <- bslib::page(
         #
         # # Horizontal line ----
         tags$hr(),
-        h4("Download results"),
+        shiny::conditionalPanel(
+          condition = "input.load",
+          h4("Download results"),
+          shiny::helpText("Choose your favourite output file format for further work."),
+          shiny::selectInput(
+            inputId = "output_type",
+            label = "Choose your desired output format",
+            selected = NULL,
+            choices = list(
+              "Word" = "docx",
+              "LibreOffice" = "odt",
+              "PDF" = "pdf"
+            )
+          ),
 
-        shiny::helpText("The download currently works, but the output is not correctly formatted. Work in progress!"),
-
-        # Button
-        downloadButton(
-          outputId = "report",
-          label = "Download",
-          icon = shiny::icon("download")
+          # Button
+          downloadButton(
+            outputId = "report",
+            label = "Download",
+            icon = shiny::icon("download")
+          )
         )
-
       )
     ),
     bslib::nav_spacer(),

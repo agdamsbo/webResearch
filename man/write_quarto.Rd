@@ -6,9 +6,8 @@
 \usage{
 write_quarto(
   data,
-  fileformat,
-  qmd.file = here::here("analyses.qmd"),
-  file = NULL,
+  fileformat = c("html", "docx", "odt", "pdf", "all"),
+  qmd.file = here::here("report.qmd"),
   ...
 )
 }
@@ -17,14 +16,12 @@ write_quarto(
 
 \item{fileformat}{output format. Ignored if file!=NULL}
 
-\item{qmd.file}{qmd file to render. Default is 'here::here("analyses.qmd")'}
+\item{qmd.file}{qmd file to render. Default is 'here::here("report.qmd")'}
 
-\item{file}{exact filename (Optional)}
-
-\item{...}{Ignored for now}
+\item{...}{Passed to \code{quarto::quarto_render()}}
 }
 \value{
-none
+output file name
 }
 \description{
 Wrapper to save data in RDS, load into specified qmd and render

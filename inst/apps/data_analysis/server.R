@@ -25,11 +25,16 @@ if (!requireNamespace("webResearch")) {
 library(webResearch)
 
 server <- function(input, output, session) {
+  ## Listing files in www in session start to keep when ending and removing
+  ## everything else.
+  files.to.keep <- list.files("www/")
+
   v <- shiny::reactiveValues(
     list = NULL,
     ds = NULL,
     input = exists("webResearch_data"),
-    local_temp = NULL
+    local_temp = NULL,
+    quarto = NULL
   )
 
   ds <- shiny::reactive({
@@ -88,31 +93,33 @@ server <- function(input, output, session) {
       }
 
       if (is.null(input$include_vars)) {
-        base_vars <- NULL
+        base_vars <- colnames(data)
       } else {
         base_vars <- c(input$include_vars, input$outcome_var)
       }
+
+      data <- dplyr::select(data, dplyr::all_of(base_vars))
+
+      model <- data |>
+        regression_model(
+          outcome.str = input$outcome_var,
+          auto.mode = input$regression_auto == 1,
+          formula.str = input$regression_formula,
+          fun = input$regression_fun,
+          args.list = eval(parse(text = paste0("list(", input$regression_args, ")")))
+        )
 
 
       v$list <- list(
         data = data,
         table1 = data |>
           baseline_table(
-            vars = base_vars,
             fun.args =
               list(
                 by = by.var
               )
           ),
-        table2 = data |>
-          regression_model(
-            outcome.str = input$outcome_var,
-            auto.mode = input$regression_auto == 1,
-            formula.str = input$regression_formula,
-            fun = input$regression_fun,
-            args.list = eval(parse(text = paste0("list(", input$regression_args, ")"))),
-            vars = input$include_vars
-          ) |>
+        table2 = model |>
           regression_table()
       )
 
@@ -127,7 +134,6 @@ server <- function(input, output, session) {
       )
     }
   )
-
 
   output$uploaded <- shiny::reactive({
     if (is.null(v$ds)) {
@@ -149,35 +155,30 @@ server <- function(input, output, session) {
 
   shiny::outputOptions(output, "has_input", suspendWhenHidden = FALSE)
 
-  #####
-  #### Generating output
-  #####
-
-  # Downloadable csv of selected dataset ----
-  # output$downloadData <- shiny::downloadHandler(
-  #   filename = "index_lookup.csv",
-  #   content = function(file) {
-  #     write.csv(v$index, file, row.names = FALSE)
-  #   }
-  # )
-
-
   # Could be rendered with other tables or should show progress
   # Investigate quarto render problems
   # On temp file handling: https://github.com/quarto-dev/quarto-cli/issues/3992
   output$report <- downloadHandler(
-    filename = "analyses.html",
-    content = function(file) {
-      local.temp <- paste0("temp.", tools::file_ext(file))
+    filename = shiny::reactive({
+      paste0("report.", input$output_type)
+    }),
+    content = function(file, type = input$output_type) {
       v$list |>
         write_quarto(
-          file = local.temp,
-          qmd.file = file.path(getwd(), "www/analyses.qmd")
+          fileformat = type,
+          qmd.file = file.path(getwd(), "www/report.qmd")
         )
-      v$local_temp <- local.temp
-      file.rename(v$local_temp, file)
+      file.rename(paste0("www/report.", type), file)
     }
   )
 
+  session$onSessionEnded(function() {
+    cat("Session Ended\n")
+    files <- list.files("www/")
+    lapply(files[!files %in% files.to.keep], \(.x){
+      unlink(paste0("www/", .x), recursive = FALSE)
+      print(paste(.x, "deleted"))
+    })
+  })
   #
 }

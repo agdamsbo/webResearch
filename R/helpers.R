@@ -25,26 +25,28 @@ getfun <- function(x) {
 #'
 #' @param data list to pass to qmd
 #' @param fileformat output format. Ignored if file!=NULL
-#' @param qmd.file qmd file to render. Default is 'here::here("analyses.qmd")'
-#' @param file exact filename (Optional)
-#' @param ... Ignored for now
+#' @param qmd.file qmd file to render. Default is 'here::here("report.qmd")'
+#' @param ... Passed to `quarto::quarto_render()`
 #'
-#' @return none
+#' @return output file name
 #' @export
 #'
-write_quarto <- function(data,fileformat,qmd.file=here::here("analyses.qmd"),file=NULL,...){
-  if (is.null(file)){
-    file <- paste0("analyses.",fileformat)
-  }
-  temp <- tempfile(fileext = ".Rds")
-  # write_rds(mtcars, temp)
-  # read_rds(temp)
-  web_data <- data
-  saveRDS(web_data,file=temp)
+write_quarto <- function(data,fileformat=c("html","docx","odt","pdf","all"),qmd.file=here::here("report.qmd"),...){
+  fileformat <- match.arg(fileformat)
+  # Exports data to temporary location
+  #
+  # I assume this is more secure than putting it in the www folder and deleting
+  # on session end
+  temp <- tempfile(fileext = ".rds")
+  readr::write_rds(data,file=temp)
 
+  ## Specifying a output path will make the rendering fail
+  ## Ref: https://github.com/quarto-dev/quarto-cli/discussions/4041
+  ## Outputs to the same as the .qmd file
   quarto::quarto_render(qmd.file,
-                        output_file = file,
-                        execute_params = list(data.file=temp)
+                        output_format = fileformat,
+                        execute_params = list(data.file=temp),
+                        ...
   )
 }
 

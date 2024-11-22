@@ -38,5 +38,5 @@ regression_table <- function(data, args.list = NULL, fun = "gtsummary::tbl_regre
   }
 
   out <- do.call(getfun(fun), c(list(x = data), args.list))
-  return(out)
+  out |> gtsummary::add_glance_source_note()
 }
