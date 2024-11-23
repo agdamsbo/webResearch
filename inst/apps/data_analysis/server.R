@@ -163,23 +163,27 @@ server <- function(input, output, session) {
           gtsummary::as_gt()
       )
 
+      ### Rendering complete quarto report with all formats linked
+      modify_qmd(file = file.path(getwd(), "www/report.qmd"),format = "all")
+      v$list |>
+        write_quarto(
+          input = file.path(getwd(), "www/report_format.qmd"),
+          output_format = "all"
+        )
 
+      ## Wont be included...
+      ## idea: https://gist.github.com/cecilialee/46e5ec16237cf17bf9a5e971edb332f7
+
+      output$report <- shiny::renderUI({
+        # browser()
+        shiny::addResourcePath("www",file.path(getwd(),"www/"))
+        # shiny::tags$iframe(glue::glue("{file.path(getwd(), 'www/report_format.html')}"))
+        shiny::tags$iframe("www/report_format.html")
+        # HTML(readLines(file_to_show))
+      })
 
     }
   )
-
-  # renderUI({
-  #   tags$iframe(seamless="seamless",
-  #               src= "Hub_Infographic.html",
-  #               width=800,
-  #               height=800)
-  # })
-  #
-  #
-  # getPage<-shiny::reactive({
-  #   shiny::req(file.exists(file.path(getwd(), "www/report_format.html")))
-  #   return(shiny::includeHTML(file.path(getwd(), "www/report_format.html")))
-  # })
 
   output$uploaded <- shiny::reactive({
     if (is.null(v$ds)) {

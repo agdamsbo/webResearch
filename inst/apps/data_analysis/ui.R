@@ -41,7 +41,8 @@ panels <- list(
   ),
   bslib::nav_panel(
     title = "Multivariable regression table",
-    gt::gt_output(outputId = "table2")
+    gt::gt_output(outputId = "table2"),
+    shiny::htmlOutput("report")
   )
 )
 
@@ -175,7 +176,10 @@ ui <- bslib::page(
               "All the above" = "all"
             )
           ),
-
+            shiny::actionButton(inputId = "open_report",
+                                label = "Open report", class = "btn-primary",
+                                onclick =glue::glue("window.open('file:///{file.path(getwd(), 'www/report_format.html')}', '_blank')")
+),
           # Button
           downloadButton(
             outputId = "report",
