@@ -162,8 +162,24 @@ server <- function(input, output, session) {
         v$list$table2 |>
           gtsummary::as_gt()
       )
+
+
+
     }
   )
+
+  # renderUI({
+  #   tags$iframe(seamless="seamless",
+  #               src= "Hub_Infographic.html",
+  #               width=800,
+  #               height=800)
+  # })
+  #
+  #
+  # getPage<-shiny::reactive({
+  #   shiny::req(file.exists(file.path(getwd(), "www/report_format.html")))
+  #   return(shiny::includeHTML(file.path(getwd(), "www/report_format.html")))
+  # })
 
   output$uploaded <- shiny::reactive({
     if (is.null(v$ds)) {
@@ -195,8 +211,8 @@ server <- function(input, output, session) {
     content = function(file, type = input$output_type) {
       v$list |>
         write_quarto(
-          fileformat = type,
-          qmd.file = file.path(getwd(), "www/report.qmd")
+          output_format = type,
+          input = file.path(getwd(), "www/report.qmd")
         )
       file.rename(paste0("www/report.", type), file)
     }
@@ -210,5 +226,5 @@ server <- function(input, output, session) {
       print(paste(.x, "deleted"))
     })
   })
-  #
+
 }

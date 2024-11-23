@@ -47,7 +47,19 @@ panels <- list(
 
 
 ui <- bslib::page(
-  theme = bslib::bs_theme(bootswatch = "minty"),
+  theme = bslib::bs_theme(bootswatch = "minty",
+                            base_font = font_google("Inter"),
+                            code_font = font_google("JetBrains Mono")
+                          ),
+  # theme = bslib::bs_theme(
+    # bg = "#101010",
+    # fg = "#FFF",
+  #   primary = "#E69F00",
+  #   secondary = "#0072B2",
+  #   success = "#009E73",
+  #   base_font = font_google("Inter"),
+  #   code_font = font_google("JetBrains Mono")
+  # ),
   title = "webResearcher for easy data analysis",
   bslib::page_navbar(
     title = "webResearcher",
@@ -159,7 +171,8 @@ ui <- bslib::page(
             choices = list(
               "Word" = "docx",
               "LibreOffice" = "odt",
-              "PDF" = "pdf"
+              "PDF" = "pdf",
+              "All the above" = "all"
             )
           ),
 

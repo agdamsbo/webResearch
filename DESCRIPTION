@@ -22,9 +22,12 @@ Imports:
     readODS,
     readr,
     shiny,
-    MASS
+    MASS,
+    REDCapCAST,
+    purrr
 Suggests: 
     styler,
-    devtools
+    devtools,
+    rhub
 URL: https://github.com/agdamsbo/webResearch
 BugReports: https://github.com/agdamsbo/webResearch/issues

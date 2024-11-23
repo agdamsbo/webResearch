@@ -1,16 +1,13 @@
 ---
+format: 
+  html:
+    embed-resources: true
 title: "webResearch analysis results"
 date: today
 author: webResearch Tool
 toc: true
 execute: 
   echo: false
-format: 
-  html:
-    embed-resources: true
-  docx: default
-  odt: default
-  pdf: default
 params:
   data.file: NA
 ---
