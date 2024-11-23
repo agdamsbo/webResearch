@@ -163,23 +163,8 @@ server <- function(input, output, session) {
           gtsummary::as_gt()
       )
 
-
-
     }
   )
-
-  # renderUI({
-  #   tags$iframe(seamless="seamless",
-  #               src= "Hub_Infographic.html",
-  #               width=800,
-  #               height=800)
-  # })
-  #
-  #
-  # getPage<-shiny::reactive({
-  #   shiny::req(file.exists(file.path(getwd(), "www/report_format.html")))
-  #   return(shiny::includeHTML(file.path(getwd(), "www/report_format.html")))
-  # })
 
   output$uploaded <- shiny::reactive({
     if (is.null(v$ds)) {
