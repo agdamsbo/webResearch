@@ -24,12 +24,14 @@ Imports:
     shiny,
     MASS,
     REDCapCAST,
-    purrr
+    purrr,
+    broom,
+    broom.helpers
 Suggests: 
     styler,
     devtools,
     rhub
-Remotes:   
+Remotes: 
   agdamsbo/webResearch 
 URL: https://github.com/agdamsbo/webResearch
 BugReports: https://github.com/agdamsbo/webResearch/issues
