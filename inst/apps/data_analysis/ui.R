@@ -170,9 +170,10 @@ ui <- bslib::page(
             selected = NULL,
             choices = list(
               "Word" = "docx",
-              "LibreOffice" = "odt",
-              "PDF" = "pdf",
-              "All the above" = "all"
+              "LibreOffice" = "odt"
+              # ,
+              # "PDF" = "pdf",
+              # "All the above" = "all"
             )
           ),
 

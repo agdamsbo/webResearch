@@ -19,9 +19,6 @@ library(quarto)
 library(here)
 library(broom)
 library(broom.helpers)
-if (!requireNamespace("REDCapCAST")) {
-  devtools::install_github("agdamsbo/REDCapCAST", quiet = TRUE, upgrade = "never")
-}
 library(REDCapCAST)
 if (!requireNamespace("webResearch")) {
   devtools::install_github("agdamsbo/webResearch", quiet = TRUE, upgrade = "never")
