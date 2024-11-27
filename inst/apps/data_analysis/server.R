@@ -20,10 +20,14 @@ library(here)
 library(broom)
 library(broom.helpers)
 library(REDCapCAST)
-if (!requireNamespace("webResearch")) {
-  devtools::install_github("agdamsbo/webResearch", quiet = TRUE, upgrade = "never")
+# if (!requireNamespace("webResearch")) {
+#   devtools::install_github("agdamsbo/webResearch", quiet = TRUE, upgrade = "never")
+# }
+# library(webResearch)
+
+if (file.exists(here::here("functions.R"))) {
+  source(here::here("functions.R"))
 }
-library(webResearch)
 
 server <- function(input, output, session) {
   ## Listing files in www in session start to keep when ending and removing

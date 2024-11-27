@@ -4,4 +4,6 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^dev$
-.github
+^\.github$
+^inst/shiny-examples/casting/functions\.R$
+^functions\.R$
