@@ -112,3 +112,13 @@ factorize <- function(data,vars){
     data
   }
 }
+
+dummy_Imports <- function() {
+  list(
+    MASS::as.fractions(),
+    broom::augment(),
+    broom.helpers::all_categorical(),
+    here::here()
+    )
+  #https://github.com/hadley/r-pkgs/issues/828
+  }
