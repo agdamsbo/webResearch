@@ -128,6 +128,7 @@ ui <- bslib::page(
         ),
         shiny::helpText(em("Please specify relevant columns from your data, and press 'Load data'")),
         shiny::uiOutput("outcome_var"),
+        shiny::uiOutput("strat_var"),
         shiny::radioButtons(
           inputId = "all",
           label = "Specify covariables",

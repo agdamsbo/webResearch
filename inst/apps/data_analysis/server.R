@@ -84,6 +84,16 @@ server <- function(input, output, session) {
     )
   })
 
+  output$strat_var <- shiny::renderUI({
+    selectInput(
+      inputId = "strat_var",
+      selected = "none",
+      label = "Select variable to stratify baseline",
+      choices = c("none" ,colnames(ds())),
+      multiple = FALSE
+    )
+  })
+
   output$factor_vars <- shiny::renderUI({
     selectizeInput(
       inputId = "factor_vars",
@@ -117,8 +127,8 @@ server <- function(input, output, session) {
 
       data <- data |> factorize(vars = input$factor_vars)
 
-      if (is.factor(data[[input$outcome_var]])) {
-        by.var <- input$outcome_var
+      if (is.factor(data[[input$strat_var]])) {
+        by.var <- input$strat_var
       } else {
         by.var <- NULL
       }
@@ -149,7 +159,14 @@ server <- function(input, output, session) {
               list(
                 by = by.var
               )
-          ),
+          ) |>
+          (\(.x){
+            if (!is.null(by.var)){
+              .x |> gtsummary::add_overall()
+            } else {
+              .x
+            }
+          })(),
         table2 = model |>
           regression_table()
       )
