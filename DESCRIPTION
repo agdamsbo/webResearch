@@ -26,7 +26,10 @@ Imports:
     REDCapCAST,
     purrr,
     broom,
-    broom.helpers
+    broom.helpers,
+    cardx,
+    parameters,
+    DT
 Suggests: 
     styler,
     devtools,

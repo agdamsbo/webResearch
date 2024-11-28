@@ -118,7 +118,11 @@ dummy_Imports <- function() {
     MASS::as.fractions(),
     broom::augment(),
     broom.helpers::all_categorical(),
-    here::here()
+    here::here(),
+    cardx::all_of(),
+    parameters::ci(),
+    DT::addRow(),
+    bslib::accordion()
     )
   #https://github.com/hadley/r-pkgs/issues/828
   }

@@ -53,7 +53,7 @@ server <- function(input, output, session) {
     # or all rows if selected, will be shown.
     if (v$input) {
       out <- webResearch_data
-    } else if (v$test=="test") {
+    } else if (v$test == "test") {
       out <- gtsummary::trial
     } else {
       shiny::req(input$file)
@@ -61,6 +61,15 @@ server <- function(input, output, session) {
     }
 
     v$ds <- "present"
+    if (input$factorize == "yes") {
+      out <- out |>
+        (\(.x){
+          suppressWarnings(
+            REDCapCAST::numchar2fct(.x)
+          )
+        })()
+
+    }
     return(out)
   })
 
@@ -69,7 +78,7 @@ server <- function(input, output, session) {
       inputId = "include_vars",
       selected = NULL,
       label = "Covariables to include",
-      choices = colnames(ds())[-match(input$outcome_var, colnames(ds()))],
+      choices = colnames(ds()),
       multiple = TRUE
     )
   })
@@ -89,7 +98,7 @@ server <- function(input, output, session) {
       inputId = "strat_var",
       selected = "none",
       label = "Select variable to stratify baseline",
-      choices = c("none" ,colnames(ds())),
+      choices = c("none", colnames(ds()[base_vars()])),
       multiple = FALSE
     )
   })
@@ -99,20 +108,38 @@ server <- function(input, output, session) {
       inputId = "factor_vars",
       selected = colnames(ds())[sapply(ds(), is.factor)],
       label = "Covariables to format as categorical",
-      choices = colnames(ds())[sapply(ds(), is.character)],
+      choices = colnames(ds()),
       multiple = TRUE
     )
   })
 
-  output$data.input <- shiny::renderTable({
-    utils::head(ds(),20)
+  base_vars <- shiny::reactive({
+    if (is.null(input$include_vars)) {
+      out <- colnames(ds())
+    } else {
+      out <- unique(c(input$include_vars, input$outcome_var))
+    }
+    return(out)
   })
 
-  output$data.classes <- shiny::renderTable({
-    shiny::req(input$file)
-    data.frame(matrix(sapply(ds(),\(.x){class(.x)[1]}),nrow=1)) |>
-      stats::setNames(names(ds()))
+  # output$data.input <- shiny::renderTable({
+  #   utils::head(ds(), 20)
+  # })
+
+  output$data.input <- DT::renderDT({
+    ds()[base_vars()]
   })
+
+  output$data.classes <- gt::render_gt({
+    shiny::req(input$file)
+    data.frame(matrix(sapply(ds(), \(.x){
+      class(.x)[1]
+    }), nrow = 1)) |>
+      stats::setNames(names(ds())) |>
+      gt::gt()
+  })
+
+
 
   shiny::observeEvent(
     {
@@ -127,28 +154,45 @@ server <- function(input, output, session) {
 
       data <- data |> factorize(vars = input$factor_vars)
 
-      if (is.factor(data[[input$strat_var]])) {
-        by.var <- input$strat_var
-      } else {
+      # if (is.factor(data[[input$strat_var]])) {
+      #   by.var <- input$strat_var
+      # } else {
+      #   by.var <- NULL
+      # }
+
+      if (input$strat_var == "none") {
         by.var <- NULL
-      }
-
-      if (is.null(input$include_vars)) {
-        base_vars <- colnames(data)
       } else {
-        base_vars <- c(input$include_vars, input$outcome_var)
+        by.var <- input$strat_var
       }
 
-      data <- dplyr::select(data, dplyr::all_of(base_vars))
+      data <- data[base_vars()]
 
-      model <- data |>
-        regression_model(
-          outcome.str = input$outcome_var,
-          auto.mode = input$regression_auto == 1,
-          formula.str = input$regression_formula,
-          fun = input$regression_fun,
-          args.list = eval(parse(text = paste0("list(", input$regression_args, ")")))
-        )
+      # model <- data |>
+      #   regression_model(
+      #     outcome.str = input$outcome_var,
+      #     auto.mode = input$regression_auto == 1,
+      #     formula.str = input$regression_formula,
+      #     fun = input$regression_fun,
+      #     args.list = eval(parse(text = paste0("list(", input$regression_args, ")")))
+      #   )
+
+      models <- list(
+        "Univariable" = regression_model_uv,
+        "Multivariable" = regression_model
+      ) |>
+        lapply(\(.fun){
+          do.call(
+            .fun,
+            c(
+              list(data = data),
+              list(outcome.str = input$outcome_var),
+              list(formula.str = input$regression_formula),
+              list(fun = input$regression_fun),
+              list(args.list = eval(parse(text = paste0("list(", input$regression_args, ")"))))
+            )
+          )
+        })
 
 
       v$list <- list(
@@ -161,14 +205,24 @@ server <- function(input, output, session) {
               )
           ) |>
           (\(.x){
-            if (!is.null(by.var)){
+            if (!is.null(by.var)) {
               .x |> gtsummary::add_overall()
             } else {
               .x
             }
+          })() |>
+          (\(.x){
+            if (input$add_p == "yes") {
+              .x |>
+                gtsummary::add_p() |>
+                gtsummary::bold_p()
+            } else {
+              .x
+            }
           })(),
-        table2 = model |>
-          regression_table()
+        table2 = models |>
+          purrr::map(regression_table) |>
+          tbl_merge()
       )
 
       output$table1 <- gt::render_gt(
@@ -180,7 +234,6 @@ server <- function(input, output, session) {
         v$list$table2 |>
           gtsummary::as_gt()
       )
-
     }
   )
 
@@ -229,5 +282,4 @@ server <- function(input, output, session) {
       print(paste(.x, "deleted"))
     })
   })
-
 }

@@ -9,6 +9,23 @@
     ]
   },
   "Packages": {
+    "DT": {
+      "Package": "DT",
+      "Version": "0.33",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "crosstalk",
+        "htmltools",
+        "htmlwidgets",
+        "httpuv",
+        "jquerylib",
+        "jsonlite",
+        "magrittr",
+        "promises"
+      ],
+      "Hash": "64ff3427f559ce3f2597a4fe13255cb6"
+    },
     "MASS": {
       "Package": "MASS",
       "Version": "7.3-61",
@@ -169,6 +186,22 @@
       ],
       "Hash": "543776ae6848fde2f48ff3816d0628bc"
     },
+    "bayestestR": {
+      "Package": "bayestestR",
+      "Version": "0.15.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "datawizard",
+        "graphics",
+        "insight",
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "Hash": "d7c05ccb9d60d87dbbe8b4042c385f01"
+    },
     "bigD": {
       "Package": "bigD",
       "Version": "0.3.0",
@@ -301,6 +334,23 @@
       ],
       "Hash": "2147e8448f4eb87197520fc1710855c7"
     },
+    "cardx": {
+      "Package": "cardx",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "cards",
+        "cli",
+        "dplyr",
+        "glue",
+        "lifecycle",
+        "rlang",
+        "tidyr"
+      ],
+      "Hash": "e5458dd65b0602136b16aed802d3bd50"
+    },
     "cellranger": {
       "Package": "cellranger",
       "Version": "1.1.0",
@@ -389,6 +439,19 @@
       ],
       "Hash": "859d96e65ef198fd43e82b9628d593ef"
     },
+    "crosstalk": {
+      "Package": "crosstalk",
+      "Version": "1.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R6",
+        "htmltools",
+        "jsonlite",
+        "lazyeval"
+      ],
+      "Hash": "ab12c7b080a57475248a30f4db6298c0"
+    },
     "curl": {
       "Package": "curl",
       "Version": "6.0.1",
@@ -398,6 +461,19 @@
         "R"
       ],
       "Hash": "e8ba62486230951fcd2b881c5be23f96"
+    },
+    "datawizard": {
+      "Package": "datawizard",
+      "Version": "0.13.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "insight",
+        "stats",
+        "utils"
+      ],
+      "Hash": "303aeace6f3554ce2d62e5d1df6fcd6e"
     },
     "digest": {
       "Package": "digest",
@@ -706,6 +782,19 @@
       ],
       "Hash": "ac107251d9d9fd72f0ca8049988f1d7f"
     },
+    "insight": {
+      "Package": "insight",
+      "Version": "1.0.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "Hash": "bee0c3abb5eea6c4170ea2a7c334893f"
+    },
     "jquerylib": {
       "Package": "jquerylib",
       "Version": "0.1.4",
@@ -811,6 +900,16 @@
         "rlang"
       ],
       "Hash": "a3e051d405326b8b0012377434c62b37"
+    },
+    "lazyeval": {
+      "Package": "lazyeval",
+      "Version": "0.2.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "d908914ae53b04d4c0c0fd72ecc35370"
     },
     "lifecycle": {
       "Package": "lifecycle",
@@ -930,6 +1029,23 @@
         "utils"
       ],
       "Hash": "55ddd2d4a1959535f18393478b0c14a6"
+    },
+    "parameters": {
+      "Package": "parameters",
+      "Version": "0.23.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "bayestestR",
+        "datawizard",
+        "graphics",
+        "insight",
+        "methods",
+        "stats",
+        "utils"
+      ],
+      "Hash": "518970426f8042a2b27c3415da881674"
     },
     "pillar": {
       "Package": "pillar",

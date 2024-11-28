@@ -2,12 +2,20 @@
 % Please edit documentation in R/regression_table.R
 \name{regression_table}
 \alias{regression_table}
+\alias{regression_table.list}
+\alias{regression_table.webresearch_model}
 \title{Create table of regression model}
 \usage{
-regression_table(data, args.list = NULL, fun = "gtsummary::tbl_regression")
+regression_table(x, ...)
+
+\method{regression_table}{list}(x, ...)
+
+\method{regression_table}{webresearch_model}(x, ..., args.list = NULL, fun = "gtsummary::tbl_regression")
 }
 \arguments{
-\item{data}{regression model}
+\item{x}{regression model}
+
+\item{...}{passed to methods}
 
 \item{args.list}{list of arguments passed to 'fun'.}
 
@@ -20,6 +28,7 @@ object of standard class for fun
 Create table of regression model
 }
 \examples{
+\dontrun{
 gtsummary::trial |>
   regression_model(
     outcome.str = "stage",
@@ -41,4 +50,34 @@ gtsummary::trial |>
     args.list = list(family = binomial(link = "logit"))
   ) |>
   regression_table()
+gtsummary::trial |>
+  regression_model_uv(
+    outcome.str = "trt",
+    fun = "stats::glm",
+    args.list = list(family = stats::binomial(link = "logit"))
+  ) |>
+  regression_table()
+gtsummary::trial |>
+  regression_model_uv(
+    outcome.str = "stage",
+    args.list = list(family = stats::binomial(link = "logit"))
+  ) |>
+  regression_table()
+
+list(
+  "Univariable" = regression_model_uv,
+  "Multivariable" = regression_model
+) |>
+  lapply(\(.fun){
+    do.call(
+      .fun,
+      c(
+        list(data = gtsummary::trial),
+        list(outcome.str = "stage")
+      )
+    )
+  }) |>
+  purrr::map(regression_table) |>
+  tbl_merge()
+  }
 }

@@ -1,39 +1,16 @@
 library(shiny)
 library(bslib)
 requireNamespace("gt")
-# require(ggplot2)
-# source("https://raw.githubusercontent.com/agdamsbo/cognitive.index.lookup/main/R/index_from_raw.R")
-# source("https://raw.githubusercontent.com/agdamsbo/cognitive.index.lookup/main/R/plot_index.R")
-# source(here::here("R/index_from_raw.R"))
-# source(here::here("R/plot_index.R"))
-
-# ui <- fluidPage(
-
-cards <- list(
-  bslib::card(
-    max_height = "200px",
-    full_screen = TRUE,
-    bslib::card_header("Data overview"),
-    shiny::uiOutput("data.input")
-  ),
-  bslib::card(
-    # max_height = "200px",
-    full_screen = TRUE,
-    bslib::card_header("Baseline characteristics"),
-    gt::gt_output(outputId = "table1")
-  ),
-  bslib::card(
-    full_screen = TRUE,
-    bslib::card_header("Multivariable regression table"),
-    gt::gt_output(outputId = "table2")
-  )
-)
 
 panels <- list(
   bslib::nav_panel(
     title = "Data overview",
-    shiny::uiOutput("data.classes"),
-    shiny::uiOutput("data.input")
+    # shiny::uiOutput("data.classes"),
+    # shiny::uiOutput("data.input"),
+    shiny::p("Classes of uploaded data"),
+    gt::gt_output("data.classes"),
+    shiny::p("Subset data"),
+    DT::DTOutput("data.input")
   ),
   bslib::nav_panel(
     title = "Baseline characteristics",
@@ -47,25 +24,15 @@ panels <- list(
 
 
 ui <- bslib::page(
-  theme = bslib::bs_theme(bootswatch = "minty",
-                            base_font = font_google("Inter"),
-                            code_font = font_google("JetBrains Mono")
-                          ),
-  # theme = bslib::bs_theme(
-    # bg = "#101010",
-    # fg = "#FFF",
-  #   primary = "#E69F00",
-  #   secondary = "#0072B2",
-  #   success = "#009E73",
-  #   base_font = font_google("Inter"),
-  #   code_font = font_google("JetBrains Mono")
-  # ),
+  theme = bslib::bs_theme(
+    bootswatch = "minty",
+    base_font = font_google("Inter"),
+    code_font = font_google("JetBrains Mono")
+  ),
   title = "webResearcher for easy data analysis",
   bslib::page_navbar(
     title = "webResearcher",
     header = h6("Welcome to the webResearcher tool. This is an early alpha version to act as a proof-of-concept and in no way intended for wider public use."),
-
-    # sidebarPanel(
     sidebar = bslib::sidebar(
       width = 300,
       open = "open",
@@ -92,12 +59,22 @@ ui <- bslib::page(
           )
         ),
         # Does not work??
-      #   shiny::actionButton(inputId = "test_data",
-      #                       label = "Load test data", class = "btn-primary")
+        #   shiny::actionButton(inputId = "test_data",
+        #                       label = "Load test data", class = "btn-primary")
       ),
       shiny::conditionalPanel(
         condition = "output.uploaded=='yes'",
         shiny::h4("Parameter specifications"),
+        shiny::radioButtons(
+          inputId = "factorize",
+          label = "Factorize variables with few levels?",
+          selected = "yes",
+          inline = TRUE,
+          choices = list(
+            "Yes" = "yes",
+            "No" = "no"
+          )
+        ),
         shiny::radioButtons(
           inputId = "regression_auto",
           label = "Automatically choose function",
@@ -126,9 +103,23 @@ ui <- bslib::page(
             value = ""
           )
         ),
-        shiny::helpText(em("Please specify relevant columns from your data, and press 'Load data'")),
+        shiny::helpText(em("Please specify relevant settings for your data, and press 'Analyse'")),
         shiny::uiOutput("outcome_var"),
         shiny::uiOutput("strat_var"),
+        shiny::conditionalPanel(
+          condition = "input.strat_var!='none'",
+          shiny::radioButtons(
+            inputId = "add_p",
+            label = "Compare strata?",
+            selected = "no",
+            inline = TRUE,
+            choices = list(
+              "No" = "no",
+              "Yes" = "yes"
+            )
+          ),
+          shiny::helpText("Option to perform statistical comparisons between strata in baseline table.")
+        ),
         shiny::radioButtons(
           inputId = "all",
           label = "Specify covariables",
@@ -149,15 +140,27 @@ ui <- bslib::page(
           selected = "no",
           inline = TRUE,
           choices = list(
-            "No" = "no",
-            "Yes" = "yes"
+            "Yes" = "yes",
+            "No" = "no"
           )
         ),
         shiny::conditionalPanel(
           condition = "input.specify_factors=='yes'",
           shiny::uiOutput("factor_vars")
         ),
-        shiny::actionButton("load", "Analyse", class = "btn-primary"),
+        bslib::input_task_button(
+          id = "load",
+          label = "Analyse",
+          icon = shiny::icon("pencil", lib = "glyphicon"),
+          label_busy = "Working...",
+          icon_busy = fontawesome::fa_i("arrows-rotate",
+                                        class = "fa-spin",
+                                        "aria-hidden" = "true"),
+          type = "primary",
+          auto_reset = TRUE
+        ),
+        shiny::helpText("If you change the parameters, press 'Analyse' again to update the tables"),
+        # shiny::actionButton("load", "Analyse", class = "btn-primary"),
         #
         # # Horizontal line ----
         tags$hr(),
