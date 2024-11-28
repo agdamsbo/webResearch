@@ -18,7 +18,11 @@ shiny_webResearch <- function(data = NULL, ...) {
   }
 
   G <- .GlobalEnv
-  assign("webResearch_data", data, envir = G)
+
+
+  if (!is.null(data) && is.data.frame(data)) {
+    assign("webResearch_data", data, envir = G)
+  }
   a <- shiny::runApp(appDir = appDir, ...)
   return(invisible(a))
 }
