@@ -29,7 +29,12 @@ Imports:
     broom.helpers,
     cardx,
     parameters,
-    DT
+    DT,
+    performance,
+    ggiraph,
+    qqplotr,
+    see,
+    patchwork
 Suggests: 
     styler,
     devtools,

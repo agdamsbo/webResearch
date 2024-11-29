@@ -20,6 +20,8 @@ library(here)
 library(broom)
 library(broom.helpers)
 library(REDCapCAST)
+library(easystats)
+library(patchwork)
 # if (!requireNamespace("webResearch")) {
 #   devtools::install_github("agdamsbo/webResearch", quiet = TRUE, upgrade = "never")
 # }
@@ -68,7 +70,6 @@ server <- function(input, output, session) {
             REDCapCAST::numchar2fct(.x)
           )
         })()
-
     }
     return(out)
   })
@@ -194,9 +195,20 @@ server <- function(input, output, session) {
           )
         })
 
+      # browser()
+      # check <- performance::check_model(purrr::pluck(models,"Multivariable") |>
+      #                                     (\(x){
+      #                                       class(x) <- class(x)[class(x) != "webresearch_model"]
+      #                                       return(x)
+      #                                     })())
+
+      check <- purrr::pluck(models, "Multivariable") |>
+        performance::check_model()
+
 
       v$list <- list(
         data = data,
+        check = check,
         table1 = data |>
           baseline_table(
             fun.args =
@@ -234,8 +246,26 @@ server <- function(input, output, session) {
         v$list$table2 |>
           gtsummary::as_gt()
       )
+
+      output$check <- shiny::renderPlot({
+        p <- plot(check) +
+          patchwork::plot_annotation(title = "Multivariable regression model checks")
+        p
+        # Generate checks in one column
+        # layout <- sapply(seq_len(length(p)), \(.x){
+        #   patchwork::area(.x, 1)
+        # })
+        #
+        # p + patchwork::plot_layout(design = Reduce(c, layout))
+
+        # patchwork::wrap_plots(ncol=1) +
+        # patchwork::plot_annotation(title = 'Multivariable regression model checks')
+      })
     }
   )
+
+
+
 
   output$uploaded <- shiny::reactive({
     if (is.null(v$ds)) {

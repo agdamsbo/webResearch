@@ -16,7 +16,9 @@ params:
 web_data <- readr::read_rds(file = params$data.file)
 library(gtsummary)
 library(gt)
-library(webResearch)
+library(easystats)
+library(patchwork)
+# library(webResearch)
 ```
 
 ## Introduction
@@ -25,7 +27,7 @@ Research should be free and open with easy access for all. The webResearch tool 
 
 ## Methods
 
-Analyses were conducted in R version `r paste(version["major"],version["minor"],sep=".")` using the web-based data analysis tool 'webResearcher' version `r packageVersion("webResearch")`.
+Analyses were conducted in R version `r paste(version["major"],version["minor"],sep=".")`.
 
 ## Results
 
@@ -48,3 +50,19 @@ web_data$table2
 ## Discussion
 
 Good luck on your further work!
+
+## Sensitivity
+
+Here are the results from testing the regression model:
+
+
+```{r}
+#| label: tbl-checks
+#| fig-cap: Regression analysis checks
+#| fig-height: 8
+#| fig-width: 6
+#| fig-dpi: 600
+
+plot(web_data$check)
+
+```

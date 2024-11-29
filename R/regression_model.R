@@ -112,7 +112,6 @@ regression_model <- function(data,
   # Recreating the call
   # out$call <-  match.call(definition=eval(parse(text=fun)), call(fun, data = 'data',formula = as.formula(formula.str),args.list))
 
-  class(out) <- c("webresearch_model", class(out))
   return(out)
 }
 
@@ -193,12 +192,28 @@ regression_model_uv <- function(data,
       do.call(
         regression_model,
         c(
-          list(data = data[match(c(outcome.str,.var),names(data))]),
-          list(outcome.str=outcome.str),
-          list(args.list=args.list)
+          list(data = data[match(c(outcome.str, .var), names(data))]),
+          list(outcome.str = outcome.str),
+          list(args.list = args.list)
         )
       )
     })
 
   return(out)
+}
+
+
+#' Easy saving png
+#'
+#' @param data plot
+#' @param ... passed to 'png()'
+#' @param filename filename
+#'
+#' @return NULL
+#' @export
+#'
+save_png <- function(data, filename,...) {
+  png(filename = filename,...)
+  data
+  dev.off()
 }

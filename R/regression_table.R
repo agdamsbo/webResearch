@@ -79,7 +79,7 @@ regression_table.list <- function(x, ...) {
 
 #' @rdname regression_table
 #' @export
-regression_table.webresearch_model <- function(x, ..., args.list = NULL, fun = "gtsummary::tbl_regression") {
+regression_table.default <- function(x, ..., args.list = NULL, fun = "gtsummary::tbl_regression") {
   # Stripping custom class
   class(x) <- class(x)[class(x) != "webresearch_model"]
 

@@ -3,14 +3,14 @@
 \name{regression_table}
 \alias{regression_table}
 \alias{regression_table.list}
-\alias{regression_table.webresearch_model}
+\alias{regression_table.default}
 \title{Create table of regression model}
 \usage{
 regression_table(x, ...)
 
 \method{regression_table}{list}(x, ...)
 
-\method{regression_table}{webresearch_model}(x, ..., args.list = NULL, fun = "gtsummary::tbl_regression")
+\method{regression_table}{default}(x, ..., args.list = NULL, fun = "gtsummary::tbl_regression")
 }
 \arguments{
 \item{x}{regression model}

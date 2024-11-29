@@ -17,8 +17,12 @@ panels <- list(
     gt::gt_output(outputId = "table1")
   ),
   bslib::nav_panel(
-    title = "Multivariable regression table",
+    title = "Regression table",
     gt::gt_output(outputId = "table2")
+  ),
+  bslib::nav_panel(
+    title = "Regression checks",
+    shiny::plotOutput(outputId = "check")
   )
 )
 
@@ -193,7 +197,8 @@ ui <- bslib::page(
     bslib::nav_spacer(),
     panels[[1]],
     panels[[2]],
-    panels[[3]]
+    panels[[3]],
+    panels[[4]]
 
     # layout_columns(
     #   cards[[1]]

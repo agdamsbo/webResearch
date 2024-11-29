@@ -5,6 +5,6 @@ account: agdamsbo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 13276335
-bundleId: 9426438
+bundleId: 9433115
 url: https://agdamsbo.shinyapps.io/webResearch/
 version: 1

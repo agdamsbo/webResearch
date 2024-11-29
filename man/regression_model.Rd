@@ -49,7 +49,7 @@ gtsummary::trial |>
     formula.str = "{outcome.str}~.",
     args.list = NULL
   )
-gtsummary::trial |> regression_model(
+ls <- gtsummary::trial |> regression_model(
   outcome.str = "trt",
   auto.mode = FALSE,
   fun = "stats::glm",

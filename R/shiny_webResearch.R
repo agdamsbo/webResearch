@@ -19,7 +19,6 @@ shiny_webResearch <- function(data = NULL, ...) {
 
   G <- .GlobalEnv
 
-
   if (!is.null(data) && is.data.frame(data)) {
     assign("webResearch_data", data, envir = G)
   }
