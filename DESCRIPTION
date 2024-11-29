@@ -34,7 +34,8 @@ Imports:
     ggiraph,
     qqplotr,
     see,
-    patchwork
+    patchwork,
+    easystats
 Suggests: 
     styler,
     devtools,

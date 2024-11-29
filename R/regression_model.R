@@ -202,18 +202,3 @@ regression_model_uv <- function(data,
   return(out)
 }
 
-
-#' Easy saving png
-#'
-#' @param data plot
-#' @param ... passed to 'png()'
-#' @param filename filename
-#'
-#' @return NULL
-#' @export
-#'
-save_png <- function(data, filename,...) {
-  png(filename = filename,...)
-  data
-  dev.off()
-}
