@@ -35,7 +35,11 @@ Imports:
     qqplotr,
     see,
     patchwork,
-    easystats
+    easystats,
+    DHARMa,
+    teal,
+    IDEAFilter,
+    sparkline
 Suggests: 
     styler,
     devtools,

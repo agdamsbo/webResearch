@@ -126,3 +126,27 @@ dummy_Imports <- function() {
     )
   #https://github.com/hadley/r-pkgs/issues/828
   }
+
+
+file_export <- function(data,output.format=c("df","teal"),filename){
+  output.format <- match.arg(output.format)
+
+  filename <- gsub("-","_",filename)
+
+  if (output.format=="teal"){
+    out <- within(
+      teal_data(),
+      {
+        assign(name, value |> dplyr::bind_cols())
+      },
+      value = data,
+      name = filename
+    )
+
+    datanames(out) <- filename
+  } else if (output.format=="df"){
+    out <- data
+  }
+
+  out
+}

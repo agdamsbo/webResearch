@@ -1,5 +1,7 @@
 library(shiny)
 library(bslib)
+library(IDEAFilter)
+library(teal)
 requireNamespace("gt")
 
 panels <- list(
@@ -7,11 +9,11 @@ panels <- list(
     title = "Data overview",
     # shiny::uiOutput("data.classes"),
     # shiny::uiOutput("data.input"),
-    shiny::p("Classes of uploaded data"),
-    gt::gt_output("data.classes"),
+    # shiny::p("Classes of uploaded data"),
+    # gt::gt_output("data.classes"),
     shiny::p("Subset data"),
     DT::DTOutput("data.input")
-  ),
+      ),
   bslib::nav_panel(
     title = "Baseline characteristics",
     gt::gt_output(outputId = "table1")
@@ -158,8 +160,9 @@ ui <- bslib::page(
           icon = shiny::icon("pencil", lib = "glyphicon"),
           label_busy = "Working...",
           icon_busy = fontawesome::fa_i("arrows-rotate",
-                                        class = "fa-spin",
-                                        "aria-hidden" = "true"),
+            class = "fa-spin",
+            "aria-hidden" = "true"
+          ),
           type = "primary",
           auto_reset = TRUE
         ),

@@ -22,6 +22,8 @@ library(broom.helpers)
 library(REDCapCAST)
 library(easystats)
 library(patchwork)
+library(DHARMa)
+library(IDEAFilter)
 # if (!requireNamespace("webResearch")) {
 #   devtools::install_github("agdamsbo/webResearch", quiet = TRUE, upgrade = "never")
 # }
@@ -123,13 +125,11 @@ server <- function(input, output, session) {
     return(out)
   })
 
-  # output$data.input <- shiny::renderTable({
-  #   utils::head(ds(), 20)
-  # })
-
-  output$data.input <- DT::renderDT({
-    ds()[base_vars()]
-  })
+  output$data.input <-
+    DT::renderDT({
+      shiny::req(input$file)
+      ds()[base_vars()]
+    })
 
   output$data.classes <- gt::render_gt({
     shiny::req(input$file)
@@ -234,7 +234,8 @@ server <- function(input, output, session) {
           })(),
         table2 = models |>
           purrr::map(regression_table) |>
-          tbl_merge()
+          tbl_merge(),
+        input = input
       )
 
       output$table1 <- gt::render_gt(
