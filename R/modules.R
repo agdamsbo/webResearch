@@ -254,10 +254,10 @@ m_redcap_readServer <- function(id, output.format = c("df", "teal", "list")) {
 
       if (output.format == "list") {
         out <- list(
-            data = shiny::reactive(redcap_data)
-            # meta = dd()[["dd"]],
-            # name = name,
-            # filter = input$filter
+            data = shiny::reactive(redcap_data),
+            meta = dd()[["dd"]],
+            name = name,
+            filter = input$filter
           )
 
       } else {
