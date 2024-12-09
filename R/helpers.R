@@ -10,13 +10,13 @@
 #' @examples
 #' getfun("stats::lm")
 getfun <- function(x) {
-  if("character" %in% class(x)){
+  if ("character" %in% class(x)) {
     if (length(grep("::", x)) > 0) {
       parts <- strsplit(x, "::")[[1]]
       requireNamespace(parts[1])
       getExportedValue(parts[1], parts[2])
     }
-  }else {
+  } else {
     x
   }
 }
@@ -29,20 +29,20 @@ getfun <- function(x) {
 #' @return output file name
 #' @export
 #'
-write_quarto <- function(data,...){
-
+write_quarto <- function(data, ...) {
   # Exports data to temporary location
   #
   # I assume this is more secure than putting it in the www folder and deleting
   # on session end
   temp <- tempfile(fileext = ".rds")
-  readr::write_rds(data,file=temp)
+  readr::write_rds(data, file = temp)
 
   ## Specifying a output path will make the rendering fail
   ## Ref: https://github.com/quarto-dev/quarto-cli/discussions/4041
   ## Outputs to the same as the .qmd file
-  quarto::quarto_render(execute_params = list(data.file=temp),
-                        ...
+  quarto::quarto_render(
+    execute_params = list(data.file = temp),
+    ...
   )
 }
 
@@ -87,7 +87,7 @@ read_input <- function(file, consider.na = c("NA", '""', "")) {
 #' @return list
 #' @export
 #'
-argsstring2list <- function(string){
+argsstring2list <- function(string) {
   eval(parse(text = paste0("list(", string, ")")))
 }
 
@@ -99,7 +99,7 @@ argsstring2list <- function(string){
 #'
 #' @return data.frame
 #' @export
-factorize <- function(data,vars){
+factorize <- function(data, vars) {
   if (!is.null(vars)) {
     data |>
       dplyr::mutate(
@@ -123,29 +123,40 @@ dummy_Imports <- function() {
     parameters::ci(),
     DT::addRow(),
     bslib::accordion()
-    )
-  #https://github.com/hadley/r-pkgs/issues/828
-  }
+  )
+  # https://github.com/hadley/r-pkgs/issues/828
+}
 
 
-file_export <- function(data,output.format=c("df","teal"),filename){
+file_export <- function(data, output.format = c("df", "teal", "list"), filename, ...) {
   output.format <- match.arg(output.format)
 
-  filename <- gsub("-","_",filename)
+  filename <- gsub("-", "_", filename)
 
-  if (output.format=="teal"){
+  if (output.format == "teal") {
     out <- within(
       teal_data(),
       {
-        assign(name, value |> dplyr::bind_cols())
+        assign(name, value |>
+          dplyr::bind_cols() |>
+          REDCapCAST::parse_data() |>
+          REDCapCAST::as_factor() |>
+          REDCapCAST::numchar2fct())
       },
       value = data,
       name = filename
     )
 
     datanames(out) <- filename
-  } else if (output.format=="df"){
+  } else if (output.format == "df") {
     out <- data
+  } else if (output.format == "list") {
+    out <- list(
+      data = data,
+      name = filename
+    )
+
+    out <- c(out,...)
   }
 
   out

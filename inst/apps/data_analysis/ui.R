@@ -28,7 +28,6 @@ panels <- list(
   )
 )
 
-
 ui <- bslib::page(
   theme = bslib::bs_theme(
     bootswatch = "minty",

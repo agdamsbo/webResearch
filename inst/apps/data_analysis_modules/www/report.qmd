@@ -1,0 +1,68 @@
+---
+format: 
+  html:
+    embed-resources: true
+title: "webResearch analysis results"
+date: today
+author: webResearch Tool
+toc: true
+execute: 
+  echo: false
+params:
+  data.file: NA
+---
+
+```{r setup}
+web_data <- readr::read_rds(file = params$data.file)
+library(gtsummary)
+library(gt)
+library(easystats)
+library(patchwork)
+# library(webResearch)
+```
+
+## Introduction
+
+Research should be free and open with easy access for all. The webResearch tool attempts to help lower the bar to participate in contributing to science.
+
+## Methods
+
+Analyses were conducted in R version `r paste(version["major"],version["minor"],sep=".")`.
+
+## Results
+
+Below is the baseline characteristics plotted.
+
+```{r}
+#| label: tbl-baseline
+#| tbl-cap: Baseline characteristics of included data
+web_data$table1
+```
+
+Here are the regression results.
+
+```{r}
+#| label: tbl-regression
+#| tbl-cap: Regression analysis results
+web_data$table2
+```
+
+## Discussion
+
+Good luck on your further work!
+
+## Sensitivity
+
+Here are the results from testing the regression model:
+
+
+```{r}
+#| label: tbl-checks
+#| fig-cap: Regression analysis checks
+#| fig-height: 8
+#| fig-width: 6
+#| fig-dpi: 600
+
+plot(web_data$check)
+
+```

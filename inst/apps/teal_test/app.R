@@ -31,43 +31,21 @@ if (file.exists(here::here("functions.R"))) {
   source(here::here("functions.R"))
 }
 
-data_upload <- teal_data_module(
-  ui <- function(id) {
-    ns <- NS(id)
-    shiny::fluidPage(
-      shiny::radioButtons(
-        inputId = "import",
-        label = "Specify categorical variables?",
-        selected = "no",
-        inline = TRUE,
-        choices = list(
-          "Upload file" = "file",
-          "Export from REDCap" = "redcap"
-        )
-      ),
-      shiny::conditionalPanel(
-        condition = "input.import=='file'",
-      m_datafileUI(id)
-      ),
-      shiny::conditionalPanel(
-        condition = "input.import=='redcap'",
-        m_redcap_readUI(id)
-      )
-    )
-  },
-  server = function(id) {
-    ns <- NS(id)
-    moduleServer(id, function(input, output, session) {
-    shiny::reactive({
-    if (input$import == "file") {
-    m_datafileServer(id, output.format = "teal")
-      } else {
-        m_redcap_readServer(id, output.format = "teal")
-      }
-    })
-    })
-  }
-)
+## This setup works for a single possible source
+## The UI will work, even with server dependent selection and REDCap exports,
+## but when submitting, it only works for the module mentioned first in the server function
+## Also most data formatting is lost when passing to a teal_data_object. Bummer!
+##
+## FRUSTRATION!!
+##
+## As I read this, two different apps has to be created as things are now: one for upload, one for REDCap.
+## https://insightsengineering.github.io/teal/latest-tag/articles/data-as-shiny-module.html#warning
+##
+##
+##
+## Ad option to widen data or keep long (new function, would allow easy(ish) MMRM analyses)
+
+
 
 tm_variable_browser_module <- tm_variable_browser(
   label = "Variable browser",
@@ -76,7 +54,6 @@ tm_variable_browser_module <- tm_variable_browser(
   )
 )
 
-
 filters <- teal::teal_slices()
 
 app_source <- "https://github.com/agdamsbo/webresearch"
@@ -84,7 +61,7 @@ gh_issues_page <- "https://github.com/agdamsbo/webresearch/issues"
 
 header <- tags$span(
   style = "display: flex; align-items: center; justify-content: space-between; margin: 10px 0 10px 0;",
-  tags$span("webResearch (teal)", style = "font-size: 30px;") # ,
+  tags$span("REDCap data evaluation", style = "font-size: 30px;") # ,
   # tags$span(
   #   style = "display: flex; align-items: center;",
   #   tags$img(src = nest_logo, alt = "NEST logo", height = "45px", style = "margin-right:10px;"),
@@ -93,19 +70,40 @@ header <- tags$span(
 )
 
 footer <- tags$p(
-  "This teal app was developed by AGDamsbo using the {teal} framework for Shiny apps:",
+  "This is a simple, app for REDCap-based data browsing and evaluation. Data is only stored temporarily and deleted when the browser is refreshed or closed. The app was developed by AGDamsbo using the {teal} framework for building Shiny apps:",
   tags$a(href = app_source, target = "_blank", "Source Code"), ", ",
   tags$a(href = gh_issues_page, target = "_blank", "Report Issues")
 )
 
-app <- init(
-  data = data_upload,
+# teal_init <- function(data = tdm_redcap_read,
+#                       filter = filters,
+#                       modules = teal::modules(
+#                         teal.modules.general::tm_data_table("Data Table"),
+#                         tm_variable_browser_module
+#                       ),
+#                       title = teal::build_app_title("REDCap browser (teal)"),
+#                       header = header,
+#                       footer = footer, ...) {
+#   teal::init(data,
+#              filter,
+#              modules,
+#              title,
+#              header,
+#              footer,
+#              ...
+#              )
+# }
+#
+# redcap_browser_app <- teal_init(data = tdm_data_upload)
+
+app <- teal::init(
+  data = tdm_redcap_read,
   filter = filters,
   modules = modules(
     tm_data_table("Data Table"),
     tm_variable_browser_module
   ),
-  title = build_app_title("webResearch (teal)"),
+  title = build_app_title("REDCap data evaluation"),
   header = header,
   footer = footer
 )

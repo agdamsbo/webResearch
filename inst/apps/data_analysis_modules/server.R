@@ -46,9 +46,34 @@ server <- function(input, output, session) {
     test = "no"
   )
 
-  test_data <- shiny::eventReactive(input$test_data, {
-    v$test <- "test"
-  })
+  data_file <- datamods::import_file_server(
+    id = "file_import",
+    show_data_in = "popup",
+    trigger_return = "button",
+    return_class = "data.frame",
+    read_fns = list(
+      ods = function(file) {
+        readODS::read_ods(path = file)
+      },
+      dta = function(file) {
+        haven::read_dta(file = file)
+      }
+    )
+  )
+
+  data_redcap <- m_redcap_readServer(
+    id = "redcap_import",
+    output.format = "list"
+  )
+
+  output$redcap_prev <- DT::renderDT(
+    {
+      DT::datatable(head(purrr::pluck(data_redcap(), 1)(), 5),
+        caption = "First 5 observations"
+      )
+    },
+    server = TRUE
+  )
 
   ds <- shiny::reactive({
     # input$file1 will be NULL initially. After the user selects
@@ -56,23 +81,24 @@ server <- function(input, output, session) {
     # or all rows if selected, will be shown.
     if (v$input) {
       out <- webResearch_data
-    } else if (v$test == "test") {
-      out <- gtsummary::trial
-    } else {
-      shiny::req(input$file)
-      out <- read_input(input$file$datapath)
+    } else if (input$source == "file") {
+      out <- data_file$data() |>
+        REDCapCAST::numchar2fct()
+    } else if (input$source == "redcap") {
+      out <- purrr::pluck(data_redcap(), 1)() |>
+        REDCapCAST::parse_data() |>
+        REDCapCAST::as_factor() |>
+        REDCapCAST::numchar2fct()
     }
 
-    v$ds <- "present"
-    if (input$factorize == "yes") {
-      out <- out |>
-        (\(.x){
-          suppressWarnings(
-            REDCapCAST::numchar2fct(.x)
-          )
-        })()
-    }
-    return(out)
+    v$ds <- "loaded"
+    # browser()
+    # if (input$factorize == "yes") {
+    #   out <- out |>
+    #     REDCapCAST::numchar2fct()
+    # }
+
+    out
   })
 
   output$include_vars <- shiny::renderUI({
@@ -124,11 +150,16 @@ server <- function(input, output, session) {
     return(out)
   })
 
-  output$data.input <-
-    DT::renderDT({
-      shiny::req(input$file)
-      ds()[base_vars()]
-    })
+  ## Have a look at column filters at some point
+  ## There should be a way to use the filtering the filter data for further analyses
+  ## Disabled for now, as the JS is apparently not isolated
+  output$data_table <-
+    DT::renderDT(
+      {
+        DT::datatable(ds()[base_vars()])
+      },
+      server = FALSE
+    )
 
   output$data.classes <- gt::render_gt({
     shiny::req(input$file)
@@ -139,7 +170,9 @@ server <- function(input, output, session) {
       gt::gt()
   })
 
-
+  shiny::observeEvent(input$act_start, {
+    bslib::nav_select(id = "main_panel", selected = "Data analysis")
+  })
 
   shiny::observeEvent(
     {

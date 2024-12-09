@@ -39,7 +39,9 @@ Imports:
     DHARMa,
     teal,
     IDEAFilter,
-    sparkline
+    sparkline,
+    datamods,
+    toastui
 Suggests: 
     styler,
     devtools,

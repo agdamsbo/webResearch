@@ -30,7 +30,6 @@ m_datafileUI <- function(id) {
 }
 
 m_datafileServer <- function(id, output.format = "df") {
-  ns <- shiny::NS(id)
   shiny::moduleServer(id, function(input, output, session, ...) {
     ns <- shiny::NS(id)
     ds <- shiny::reactive({
@@ -54,7 +53,7 @@ m_datafileServer <- function(id, output.format = "df") {
       } else {
         out <- input$include_vars
       }
-      return(out)
+      out
     })
 
     output$data_input <-
@@ -64,125 +63,262 @@ m_datafileServer <- function(id, output.format = "df") {
       })
 
     shiny::eventReactive(input$submit, {
-      shiny::req(input$file)
+      # shiny::req(input$file)
 
-      file_export(
-        data = ds()[base_vars()] |> REDCapCAST::numchar2fct(),
+      data <- shiny::isolate({
+        ds()[base_vars()]
+      })
+
+      file_export(data,
         output.format = output.format,
-        filename = tools::file_path_sans_ext(input$file$name)
+        tools::file_path_sans_ext(input$file$name)
       )
     })
   })
 }
 
 
+#' Shiny module to browser and export REDCap data
+#'
+#' @param id Namespace id
+#' @rdname redcap_read_shiny_module
+#'
+#' @return shiny ui element
+#' @export
 m_redcap_readUI <- function(id) {
   ns <- shiny::NS(id)
-  shiny::tagList(
-    shiny::textInput(
-      inputId = ns("uri"),
-      label = "URI",
-      value = "https://redcap.your.institution/api/"
-    ),
-    shiny::textInput(
-      inputId = ns("api"),
-      label = "API token",
-      value = ""
-    ),
-    shiny::tableOutput(outputId = ns("table")),
-    shiny::uiOutput(outputId = ns("fields")),
-    shiny::uiOutput(outputId = ns("instruments")),
-    shiny::uiOutput(outputId = ns("arms")),
-    shiny::actionButton(inputId = ns("submit"), "Submit")
+
+  server_ui <- fluidRow(
+    column(
+      width = 6,
+      shiny::textInput(
+        inputId = ns("uri"),
+        label = "URI",
+        value = "https://redcap.your.institution/api/"
+      ),
+      shiny::textInput(
+        inputId = ns("api"),
+        label = "API token",
+        value = ""
+      )
+    )
+  )
+
+  params_ui <- fluidRow(
+    column(
+      width = 6,
+      shiny::uiOutput(outputId = ns("fields")),
+      shinyWidgets::switchInput(
+        inputId = "do_filter",
+        label = "Apply filter?",
+        value = FALSE,
+        inline = TRUE
+      ),
+      # shiny::radioButtons(
+      #   inputId = "do_filter",
+      #   label = "Filter export?",
+      #   selected = "no",
+      #   inline = TRUE,
+      #   choices = list(
+      #     "No" = "no",
+      #     "Yes" = "yes"
+      #   )
+      # ),
+      shiny::conditionalPanel(
+        condition = "input.do_filter",
+        shiny::uiOutput(outputId = ns("arms")),
+        shiny::textInput(
+          inputId = ns("filter"),
+          label = "Optional filter logic (e.g., ⁠[gender] = 'female')"
+        )
+      )
+    )
+  )
+
+  shiny::fluidPage(
+    server_ui,
+    params_ui,
+    shiny::actionButton(inputId = ns("import"), label = "Import"),
+    shiny::br(),
+    DT::DTOutput(outputId = ns("table"))
+    # toastui::datagridOutput2(outputId = ns("table")),
+    # toastui::datagridOutput2(outputId = ns("data")),
+    # shiny::actionButton(inputId = ns("submit"), label = "Submit"),
+    # DT::DTOutput(outputId = ns("data_prev"))
   )
 }
 
-m_redcap_readServer <- function(id, output.format="df") {
-  ns <- shiny::NS(id)
-  shiny::moduleServer(
-    id,
-    function(input, output, session,...) {
-      ns <- shiny::NS(id)
-      instr <- shiny::reactive({
+#' @param output.format data.frame ("df") or teal data object ("teal")
+#' @rdname redcap_read_shiny_module
+#'
+#' @return shiny server module
+#' @export
+#'
+m_redcap_readServer <- function(id, output.format = c("df", "teal", "list")) {
+  output.format <- match.arg(output.format)
+
+  module <- function(input, output, session) {
+    # ns <- shiny::NS(id)
+    ns <- session$ns
+
+    dd <- shiny::reactive({
+      shiny::req(input$api)
+      shiny::req(input$uri)
+
+      REDCapR::redcap_metadata_read(
+          redcap_uri = input$uri,
+          token = input$api
+        )$data
+    })
+
+    arms <- shiny::reactive({
+      shiny::req(input$api)
+      shiny::req(input$uri)
+
+      REDCapR::redcap_event_read(
+          redcap_uri = input$uri,
+          token = input$api
+        )$data
+    })
+
+    output$fields <- shiny::renderUI({
+      shinyWidgets::virtualSelectInput(
+        inputId = ns("fields"),
+        label = "Multiple select:",
+        choices = dd() |>
+          dplyr::select(field_name, form_name) |>
+          (\(.x){
+            split(.x$field_name, .x$form_name)
+          })() # |>
+        # stats::setNames(instr()[["data"]][[2]])
+        ,
+        updateOn = "close",
+        multiple = TRUE
+      )
+    })
+
+    output$arms <- shiny::renderUI({
+      shiny::selectizeInput(
+        # inputId = "arms",
+        inputId = ns("arms"),
+        selected = NULL,
+        label = "Filter by events/arms",
+        choices = arms()[[3]],
+        multiple = TRUE
+      )
+    })
+
+    output$table <- DT::renderDT(
+      {
         shiny::req(input$api)
         shiny::req(input$uri)
-        REDCapR::redcap_instruments(redcap_uri = input$uri, token = input$api)
-      })
-
-      output$instruments <- shiny::renderUI({
-        shiny::selectizeInput(
-          inputId = ns("instruments"),
-          # inputId = "instruments",
-          selected = NULL,
-          label = "Instruments to include",
-          choices = instr()[["data"]][[1]],
-          multiple = TRUE
+        # dd()[["data"]][c(1,2,4,5,6,8)]
+        data.df <- dd()[c(1, 2, 4, 5, 6, 8)]
+        DT::datatable(data.df,
+          caption = "Subset of data dictionary"
         )
-      })
+      },
+      server = TRUE
+    )
 
-      dd <- shiny::reactive({
-        shiny::req(input$api)
-        shiny::req(input$uri)
-        REDCapR::redcap_metadata_read(redcap_uri = input$uri, token = input$api)
-      })
+    name <- reactive({
+      shiny::req(input$api)
+      REDCapR::redcap_project_info_read(
+        redcap_uri = input$uri,
+        token = input$api
+      )$data$project_title
+    })
 
-      output$fields <- shiny::renderUI({
-        shiny::selectizeInput(
-          # inputId = "fields",
-          inputId = ns("fields"),
-          selected = NULL,
-          label = "Fields/variables to include",
-          choices = dd()[["data"]][[1]],
-          multiple = TRUE
-        )
-      })
+    shiny::eventReactive(input$import, {
+      shiny::req(input$api)
+      record_id <- dd()[[1]][1]
 
-      arms <- shiny::reactive({
-        shiny::req(input$api)
-        shiny::req(input$uri)
-        REDCapR::redcap_event_read(redcap_uri = input$uri, token = input$api)
-      })
+      redcap_data <- REDCapCAST::read_redcap_tables(
+        uri = input$uri,
+        token = input$api,
+        fields = unique(c(record_id, input$fields)),
+        # forms = input$instruments,
+        events = input$arms,
+        raw_or_label = "both",
+        filter_logic = input$filter
+      ) |>
+        REDCapCAST::redcap_wider() |>
+        dplyr::select(-dplyr::ends_with("_complete")) |>
+        dplyr::select(-dplyr::any_of(record_id)) |>
+        REDCapCAST::suffix2label()
 
-      output$arms <- shiny::renderUI({
-        shiny::selectizeInput(
-          # inputId = "arms",
-          inputId = ns("arms"),
-          selected = NULL,
-          label = "Arms/events to include",
-          choices = arms()[["data"]][[3]],
-          multiple = TRUE
-        )
-      })
+      out_object <- file_export(redcap_data,
+        output.format = output.format,
+        filename = name()
+      )
 
-      output$table <- shiny::renderTable({
-        dd()[["data"]]
-      })
-
-      shiny::eventReactive(input$submit, {
-        shiny::req(input$api)
-        data <- REDCapCAST::read_redcap_tables(
-          uri = input$uri,
-          token = input$api,
-          fields = unique(c(dd()[["data"]][[1]][1], input$fields)),
-          forms = input$instruments,
-          events = input$arms,
-          raw_or_label = "both"
-        )
-
-        info <- REDCapR::redcap_project_info_read(redcap_uri = input$uri,
-                                                  token = input$api)
-
-        data |>
-          REDCapCAST::redcap_wider() |>
-          REDCapCAST::suffix2label() |>
-          REDCapCAST::as_factor() |>
-          dplyr::select(-dplyr::ends_with("_complete")) |>
-          dplyr::select(-dplyr::any_of(dd()[["data"]][[1]][1])) |>
-          file_export(
-            output.format = output.format,
-            filename = info$data$project_title
+      if (output.format == "list") {
+        out <- list(
+            data = shiny::reactive(redcap_data)
+            # meta = dd()[["dd"]],
+            # name = name,
+            # filter = input$filter
           )
-      })
-    }
+
+      } else {
+        out <- out_object
+      }
+
+      return(out)
+    })
+  }
+
+  shiny::moduleServer(
+    id = id,
+    module = module
   )
 }
+
+
+tdm_redcap_read <- teal::teal_data_module(
+  ui <- function(id) {
+    shiny::fluidPage(
+      m_redcap_readUI(id)
+    )
+  },
+  server = function(id) {
+    m_redcap_readServer(id, output.format = "teal")
+  }
+)
+
+tdm_data_upload <- teal::teal_data_module(
+  ui <- function(id) {
+    shiny::fluidPage(
+      m_datafileUI(id)
+    )
+  },
+  server = function(id) {
+    m_datafileServer(id, output.format = "teal")
+  }
+)
+
+
+redcap_app <- function() {
+  ui <- fluidPage(
+    m_redcap_readUI("data"),
+    DT::DTOutput(outputId = "redcap_prev")
+  )
+  server <- function(input, output, session) {
+    ds <- m_redcap_readServer("data")
+    output$redcap_prev <- DT::renderDT(
+      {
+
+        # df <- shiny::isolate(data_redcap())
+        # browser()
+        #
+        DT::datatable(ds(),
+                      caption = "Observations"
+        )
+      },
+      server = TRUE
+    )
+  }
+  shinyApp(ui, server)
+}
+
+redcap_app()
