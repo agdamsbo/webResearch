@@ -41,7 +41,10 @@ Imports:
     IDEAFilter,
     sparkline,
     datamods,
-    toastui
+    toastui,
+    webshot,
+    matPkg,
+    lubridate
 Suggests: 
     styler,
     devtools,

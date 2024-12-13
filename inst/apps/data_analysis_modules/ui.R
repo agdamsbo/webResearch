@@ -8,68 +8,149 @@ requireNamespace("gt")
 # ns <- NS(id)
 
 ui_elements <- list(
-  # bslib::nav_panel(
-  #   title = "Data overview",
-  #   # shiny::uiOutput("data.classes"),
-  #   # shiny::uiOutput("data.input"),
-  #   # shiny::p("Classes of uploaded data"),
-  #   # gt::gt_output("data.classes"),
-  #   shiny::p("Subset data"),
-  #   DT::DTOutput(outputId = "data.input")
-  #     ),
-  # bslib::nav_panel(
-  #   title = "Baseline characteristics",
-  #   gt::gt_output(outputId = "table1")
-  # ),
-  # bslib::nav_panel(
-  #   title = "Regression table",
-  #   gt::gt_output(outputId = "table2")
-  # ),
-  # bslib::nav_panel(
-  #   title = "Regression checks",
-  #   shiny::plotOutput(outputId = "check")
-  # ),
   ##############################################################################
   #########
   #########  Import panel
   #########
   ##############################################################################
   "import" = bslib::nav_panel(
-    title = "Data import",
-    shiny::h4("Upload your dataset"),
-    shiny::conditionalPanel(
-      condition = "output.has_input=='yes'",
-      # Input: Select a file ----
-      shiny::helpText("Analyses are performed on provided data")
-    ),
-    shiny::conditionalPanel(
-      condition = "output.has_input=='no'",
-      # Input: Select a file ----
-      shiny::radioButtons(
-        inputId = "source",
-        label = "Upload file or export from REDCap?",
-        selected = "file",
-        inline = TRUE,
-        choices = list(
-          "File" = "file",
-          "REDCap" = "redcap"
+    title = "Import",
+    shiny::fluidRow(
+      column(
+        width = 6,
+        shiny::h4("Choose your data source"),
+        shiny::conditionalPanel(
+          condition = "output.has_input=='yes'",
+          # Input: Select a file ----
+          shiny::helpText("Analyses are performed on provided data")
+        ),
+        shiny::conditionalPanel(
+          condition = "output.has_input=='no'",
+          # Input: Select a file ----
+          shiny::radioButtons(
+            inputId = "source",
+            label = "Upload file or export from REDCap?",
+            selected = "file",
+            inline = TRUE,
+            choices = list(
+              "File" = "file",
+              "REDCap" = "redcap"
+            )
+          ),
+          shiny::conditionalPanel(
+            condition = "input.source=='file'",
+            datamods::import_file_ui("file_import",
+              title = "Choose a datafile to upload",
+              file_extensions = c(".csv", ".txt", ".xls", ".xlsx", ".rds", ".fst", ".sas7bdat", ".sav", ".ods", ".dta")
+            )
+          ),
+          shiny::conditionalPanel(
+            condition = "input.source=='redcap'",
+            m_redcap_readUI("redcap_import")
+          )
         )
       ),
-      shiny::conditionalPanel(
-        condition = "input.source=='file'",
-        datamods::import_file_ui("file_import",
-                                 title = "Choose a datafile to upload",
-          file_extensions = c(".csv", ".txt", ".xls", ".xlsx", ".rds", ".fst", ".sas7bdat", ".sav", ".ods", ".dta")
-        )
-      ),
-      shiny::conditionalPanel(
-        condition = "input.source=='redcap'",
-        m_redcap_readUI("redcap_import"),
-        DT::DTOutput(outputId = "redcap_prev")
+      column(
+        width = 6,
+        shiny::markdown("
+                           # Welcome
+
+                           This is the ***freesearchR*** web data analysis tool. An opiniotaed tool for easy data analysis at the hands of the clinician.
+
+                           By intention, this is a focused app, with only few data modification tools included to keep the workflow streamlined.
+                           ")
       )
     ),
+    shiny::conditionalPanel(
+      condition = "input.source=='redcap'",
+      DT::DTOutput(outputId = "redcap_prev")
+    ),
     shiny::br(),
-    shiny::actionButton(inputId = "act_start",label = "Start")
+    shiny::actionButton(inputId = "act_start", label = "Start")
+  ),
+  ##############################################################################
+  #########
+  #########  Data overview panel
+  #########
+  ##############################################################################
+  "overview" = bslib::nav_panel(
+    title = "Overview and modifications",
+    bslib::navset_bar(fillable = TRUE,
+      # bslib::nav_panel(
+      #   title = "Edit",
+      #   datamods::edit_data_ui(id = "edit_data")
+      # ),
+      # bslib::nav_panel(
+      #   title = "Overview",
+      #   DT::DTOutput(outputId = "table")
+      # ),
+      bslib::nav_panel(
+        title = "Rename and select",
+        tags$h3("Select, rename and convert variables"),
+        fluidRow(
+          column(
+            width = 6,
+            # radioButtons()
+            shiny::actionButton("data_reset", "Restore original data"),
+            datamods::update_variables_ui("vars_update")
+          ),
+          column(
+            width = 6,
+            tags$b("Original data:"),
+            # verbatimTextOutput("original"),
+            verbatimTextOutput("original_str"),
+            tags$b("Modified data:"),
+            # verbatimTextOutput("modified"),
+            verbatimTextOutput("modified_str")
+          )
+        )
+      ),
+      bslib::nav_panel(
+        title = "Filter and modify",
+        shinyWidgets::html_dependency_winbox(),
+        fluidRow(
+          # column(
+          #   width = 3,
+          #   shiny::uiOutput("filter_vars"),
+          #   shiny::conditionalPanel(
+          #     condition = "(typeof input.filter_vars !== 'undefined' && input.filter_vars.length > 0)",
+          #     datamods::filter_data_ui("filtering", max_height = "500px")
+          #   )
+          # ),
+          # column(
+          #   width = 9,
+          #   DT::DTOutput(outputId = "filtered_table"),
+          #   tags$b("Code dplyr:"),
+          #   verbatimTextOutput(outputId = "filtered_code")
+          # ),
+          shiny::column(
+            width = 8,
+            toastui::datagridOutput2(outputId = "table_mod"),
+            shiny::tags$b("Reproducible code:"),
+            shiny::verbatimTextOutput(outputId = "filtered_code")
+          ),
+          shiny::column(
+            width = 4,
+            shiny::actionButton("modal_cut", "Cut a variable"),
+            shiny::tags$br(),
+            shiny::tags$br(),
+            shiny::actionButton("modal_update", "Update factor's levels"),
+            shiny::tags$br(),
+            shiny::tags$br(),
+            IDEAFilter::IDEAFilter_ui("data_filter"),
+            shiny::actionButton("save_filter", "Apply the filter")
+          )
+        )
+      )
+
+
+      # column(
+      #   8,
+      #   shiny::verbatimTextOutput("filtered_code"),
+      #   DT::DTOutput("filtered_table")
+      # ),
+      # column(4, IDEAFilter::IDEAFilter_ui("data_filter"))
+    )
   ),
   ##############################################################################
   #########
@@ -77,76 +158,71 @@ ui_elements <- list(
   #########
   ##############################################################################
   "analyze" = bslib::nav_panel(
-    title = "Data analysis",
-    bslib::page_navbar(
+    title = "Analysis",
+    bslib::navset_bar(
       title = "",
       # bslib::layout_sidebar(
       #   fillable = TRUE,
-        sidebar = bslib::sidebar(
-          shiny::helpText(em("Please specify relevant settings for your data, and press 'Analyse'")),
-          shiny::uiOutput("outcome_var"),
-          shiny::uiOutput("strat_var"),
-          shiny::conditionalPanel(
-            condition = "input.strat_var!='none'",
-            shiny::radioButtons(
-              inputId = "add_p",
-              label = "Compare strata?",
-              selected = "no",
-              inline = TRUE,
-              choices = list(
-                "No" = "no",
-                "Yes" = "yes"
-              )
-            ),
-            shiny::helpText("Option to perform statistical comparisons between strata in baseline table.")
-          ),
+      sidebar = bslib::sidebar(
+        shiny::helpText(em("Please specify relevant settings for your data, and press 'Analyse'")),
+        shiny::uiOutput("outcome_var"),
+        shiny::uiOutput("strat_var"),
+        shiny::conditionalPanel(
+          condition = "input.strat_var!='none'",
           shiny::radioButtons(
-            inputId = "all",
-            label = "Specify covariables",
-            inline = TRUE, selected = 2,
-            choiceNames = c(
-              "Yes",
-              "No"
-            ),
-            choiceValues = c(1, 2)
-          ),
-          shiny::conditionalPanel(
-            condition = "input.all==1",
-            shiny::uiOutput("include_vars")
-          ),
-          shiny::radioButtons(
-            inputId = "specify_factors",
-            label = "Specify categorical variables?",
+            inputId = "add_p",
+            label = "Compare strata?",
             selected = "no",
             inline = TRUE,
             choices = list(
-              "Yes" = "yes",
-              "No" = "no"
+              "No" = "no",
+              "Yes" = "yes"
             )
           ),
-          shiny::conditionalPanel(
-            condition = "input.specify_factors=='yes'",
-            shiny::uiOutput("factor_vars")
+          shiny::helpText("Option to perform statistical comparisons between strata in baseline table.")
+        ),
+        shiny::radioButtons(
+          inputId = "all",
+          label = "Specify covariables",
+          inline = TRUE, selected = 2,
+          choiceNames = c(
+            "Yes",
+            "No"
           ),
-          bslib::input_task_button(
-            id = "load",
-            label = "Analyse",
-            icon = shiny::icon("pencil", lib = "glyphicon"),
-            label_busy = "Working...",
-            icon_busy = fontawesome::fa_i("arrows-rotate",
-              class = "fa-spin",
-              "aria-hidden" = "true"
-            ),
-            type = "primary",
-            auto_reset = TRUE
+          choiceValues = c(1, 2)
+        ),
+        shiny::conditionalPanel(
+          condition = "input.all==1",
+          shiny::uiOutput("include_vars")
+        ),
+        shiny::radioButtons(
+          inputId = "specify_factors",
+          label = "Specify categorical variables?",
+          selected = "no",
+          inline = TRUE,
+          choices = list(
+            "Yes" = "yes",
+            "No" = "no"
+          )
+        ),
+        shiny::conditionalPanel(
+          condition = "input.specify_factors=='yes'",
+          shiny::uiOutput("factor_vars")
+        ),
+        bslib::input_task_button(
+          id = "load",
+          label = "Analyse",
+          icon = shiny::icon("pencil", lib = "glyphicon"),
+          label_busy = "Working...",
+          icon_busy = fontawesome::fa_i("arrows-rotate",
+            class = "fa-spin",
+            "aria-hidden" = "true"
           ),
-          shiny::helpText("If you change the parameters, press 'Analyse' again to update the tables")
+          type = "primary",
+          auto_reset = TRUE
+        ),
+        shiny::helpText("If you change the parameters, press 'Analyse' again to update the tables")
         # )
-      ),
-      bslib::nav_spacer(),
-      bslib::nav_panel(
-        title = "Data overview",
-        DT::DTOutput(outputId = "data_table")
       ),
       bslib::nav_panel(
         title = "Baseline characteristics",
@@ -168,22 +244,22 @@ ui_elements <- list(
   #########
   ##############################################################################
   "docs" = bslib::nav_panel(
-    title = "Intro",
+    title = "Documentation",
     shiny::markdown(readLines("www/intro.md")),
     shiny::br()
   )
 )
 
 # cards <- list(
-  # "overview"=bslib::card(
-  #   title = "Data overview",
-  #   # shiny::uiOutput("data.classes"),
-  #   # shiny::uiOutput("data.input"),
-  #   # shiny::p("Classes of uploaded data"),
-  #   # gt::gt_output("data.classes"),
-  #   shiny::p("Subset data"),
-  #   DT::DTOutput(outputId = "data_table")
-  # ),
+# "overview"=bslib::card(
+#   title = "Data overview",
+#   # shiny::uiOutput("data.classes"),
+#   # shiny::uiOutput("data.input"),
+#   # shiny::p("Classes of uploaded data"),
+#   # gt::gt_output("data.classes"),
+#   shiny::p("Subset data"),
+#   DT::DTOutput(outputId = "data_table")
+# ),
 #   "baseline"=bslib::card(
 #     title = "Baseline characteristics",
 #     gt::gt_output(outputId = "table1")
@@ -210,6 +286,7 @@ ui <- bslib::page(
   bslib::page_navbar(
     id = "main_panel",
     ui_elements$import,
+    ui_elements$overview,
     ui_elements$analyze,
     ui_elements$docs
   )

@@ -149,7 +149,10 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
 
     datanames(out) <- filename
   } else if (output.format == "df") {
-    out <- data
+    out <- data|>
+      REDCapCAST::parse_data() |>
+      REDCapCAST::as_factor() |>
+      REDCapCAST::numchar2fct()
   } else if (output.format == "list") {
     out <- list(
       data = data,
