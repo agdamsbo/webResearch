@@ -2,92 +2,159 @@ library(datamods)
 library(toastui)
 library(phosphoricons)
 library(rlang)
+library(shiny)
 
-# x <- lubridate::as_datetime(seq(1,1000000,2000), origin = "2000-12-31")
-# class(x)
+
+# old_deprecated_cut.hms <- function(x, breaks = "hour", ...) {
+#   # For now, this function will allways try to cut to hours
+#   # This limits time cutting to only do hour-binning, no matter the
 #
-# lubridate::hms(c("01:00:20"))
+#   breaks_o <- breaks
 #
-# int_x <- classInt::classIntervals(lubridate::as_datetime(seq(1,1000000,2000), origin = "2000-12-31"), 4, style = "quantile")
-# classInt::classIntervals(readr::parse_time(c("01:00:20","03:00:20","01:20:20","03:02:20")), 2, style = "quantile")
-# int_x|> dput()
+#   if (identical(breaks, "hour")) {
+#     # splitter <- match(
+#     #   num,
+#     #   levels(factor(num))
+#     # )
+#     breaks <- hms::as_hms(paste0(1:23, ":00:00"))
+#   }
 #
-# library(hms)
+#   # if (identical(breaks, "daynight")) {
+#   #   # splitter <- num %in% 8:20 + 1
+#   #   breaks <- hms::as_hms(c("08:00:00","20:00:00"))
+#   # }
 #
-# ?cut.POSIXt
+#   if (length(breaks) != 1) {
+#     if ("hms" %in% class(breaks)) {
+#       splitter <- seq_along(breaks) |>
+#         purrr::map(\(.x){
+#           # browser()
+#           out <- x %in% x[x >= breaks[.x] & x < breaks[.x + 1]]
+#           if (.x == length(breaks)) {
+#             out[match(breaks[length(breaks)], x)] <- TRUE
+#           }
+#           ifelse(out, .x, 0)
+#         }) |>
+#         dplyr::bind_cols(.name_repair = "unique_quiet") |>
+#         rowSums()
+#       splitter[splitter == 0] <- NA
+#     } else {
+#       breaks <- "hour"
+#     }
+#   }
 #
-# x <- readr::parse_time(c("01:00:20","03:00:20","01:20:20","03:02:20"))
-# cut(x)
+#   if (is.numeric(breaks)) {
+#     breaks_n <- quantile(x, probs = seq(0, 1, 1 / breaks))
+#     ## Use lapply or similar to go through levels two at a time
+#     splitter <- seq(breaks) |>
+#       purrr::map(\(.x){
+#         # browser()
+#         out <- x %in% x[x >= breaks_n[.x] & x < breaks_n[.x + 1]]
+#         if (.x == breaks) {
+#           out[match(breaks_n[length(breaks_n)], x)] <- TRUE
+#         }
+#         ifelse(out, .x, 0)
+#       }) |>
+#       dplyr::bind_cols(.name_repair = "unique_quiet") |>
+#       rowSums()
+#   }
+#
+#   # browser()
+#
+#   num <- strsplit(as.character(x), ":") |>
+#     lapply(\(.x).x[[1]]) |>
+#     unlist() |>
+#     as.numeric()
+#
+#   # browser()
+#   labs <- split(x, splitter) |>
+#     purrr::imap(\(.x, .i){
+#       # if (identical(breaks_o, "daynight") && .i == 1) {
+#       #   h <- hms::as_hms(hms::hms(hours = 24) - abs(.x - hms::hms(hours = 8)))
+#       #
+#       #   paste0("[", .x[match(sort(h)[1], h)], ",", .x[match(sort(h)[length(h)], h)], "]")
+#       # } else {
+#       .x <- sort(.x)
+#       paste0("[", .x[1], ",", .x[length(.x)], "]")
+#       # }
+#     }) |>
+#     unlist()
+#
+#   structure(match(splitter, names(labs)), levels = labs, class = "factor")
+# }
 
 #' Title
 #'
 #' @param x an object inheriting from class "hms"
-#' @param breaks Can be "hour" or "dn"
 #' @param ... passed on
+#'
+#' @rdname cut
 #'
 #' @return
 #' @export
 #'
 #' @examples
 #' readr::parse_time(c("01:00:20", "03:00:20", "01:20:20", "08:20:20", "21:20:20", "03:02:20")) |> cut(2)
-#' readr::parse_time(c("01:00:20", "03:00:20", "01:20:20", "03:02:20", NA)) |>
-#'   cut() |>
-#'   dput()
-cut.hms <- function(x, breaks = "hour", ...) {
-  browser()
-  # For now, this function will allways try to cut to hours
-  # This limits time cutting to only do hour-binning, no matter the
-  if (length(breaks) != 1) {
-    if ("hms" %in% class(breaks)) {
-
-    } else {
-      breaks <- "hour"
-    }
+#' readr::parse_time(c("01:00:20", "03:00:20", "01:20:20", "08:20:20", "21:20:20", "03:02:20")) |> cut("min")
+#' readr::parse_time(c("01:00:20", "03:00:20", "01:20:20", "08:20:20", "21:20:20", "03:02:20")) |> cut(breaks = "hour")
+#' readr::parse_time(c("01:00:20", "03:00:20", "01:20:20", "08:20:20", "21:20:20", "03:02:20")) |> cut(breaks = hms::as_hms(c("01:00:00", "03:01:20", "9:20:20")))
+#' d_t <- readr::parse_time(c("01:00:20", "03:00:20", "01:20:20", "03:02:20", NA))
+#' f <- d_t |> cut(2)
+#' readr::parse_time(c("01:00:20", "03:00:20", "01:20:20", "03:02:20", NA)) |> cut(breaks = lubridate::as_datetime(c(hms::as_hms(levels(f)), hms::as_hms(max(d_t, na.rm = TRUE) + 1))), right = FALSE)
+cut.hms <- function(x, breaks, ...) {
+  if (hms::is_hms(breaks)) {
+    breaks <- lubridate::as_datetime(breaks, tz = "UTC")
   }
-  if (!breaks %in% c("hour", "dn")) {
-    if (is.numeric(breaks)) {
-      breaks_n <- quantile(x, probs = seq(0, 1, 1 / breaks))
-      ## Use lapply or similar to go through levels two at a time
-
-    } else {
-      breaks <- "hour"
-    }
-  }
-
-  ch <- strsplit(as.character(x), ":") |>
-    lapply(\(.x).x[[1]]) |>
-    unlist()
-
-  num <- as.numeric(ch)
-
-  if (breaks == "hour") {
-    splitter <- match(
-      num,
-      levels(factor(num))
-    )
-  } else if (breaks == "dn") {
-    splitter <- num %in% 8:20 + 1
-  } else {
-    stop("No other methods than hour cut is implemented.")
-  }
-
-  labs <- split(x, splitter) |>
-    purrr::imap(\(.x, .i){
-      if (breaks == "dn" && .i == 1) {
-        h <- hms::as_hms(hms::hms(hours = 24) - abs(.x - hms::hms(hours = 8)))
-
-        paste0("[", .x[match(sort(h)[1], h)], ",", .x[match(sort(h)[length(h)], h)], "]")
-      } else {
-        .x <- sort(.x)
-        paste0("[", .x[1], ",", .x[length(.x)], "]")
-      }
-    }) |>
-    unlist()
-
-  structure(match(num, l), levels = labs, class = "factor")
+  x <- lubridate::as_datetime(x, tz = "UTC")
+  out <- cut.POSIXt(x, breaks = breaks, ...)
+  attr(out, which = "brks") <- hms::as_hms(lubridate::as_datetime(attr(out, which = "brks")))
+  attr(out, which = "levels") <- as.character(hms::as_hms(lubridate::as_datetime(attr(out, which = "levels"))))
+  out
 }
 
-#' Title
+#' @rdname cut
+#' @param x an object inheriting from class "POSIXt" or "Date"
+cut.POSIXt <- function(x, breaks, right = FALSE, include.lowest = TRUE, ...) {
+  breaks_o <- breaks
+  # browser()
+  if (is.numeric(breaks)) {
+    breaks <- quantile(
+      x,
+      probs = seq(0, 1, 1 / breaks),
+      right = right,
+      include.lowest = include.lowest,
+      na.rm=TRUE
+    )
+  }
+
+  ## Doesn't really work very well for breaks other than the special character cases as right border is excluded
+  out <- base::cut.POSIXt(x, breaks=breaks,right=right,...) |> forcats::fct_drop()
+  # browser()
+
+  l <- levels(out)
+  if (is.numeric(breaks_o)) {
+    l <- breaks
+  } else if (is.character(breaks) && length(breaks) == 1) {
+    if (include.lowest) {
+      if (right) {
+        l <- c(l, min(as.character(x)))
+      } else {
+        l <- c(l, max(as.character(x)))
+      }
+    }
+  } else if (length(l) < length(breaks_o)) {
+    l <- breaks_o
+  }
+
+  attr(out, which = "brks") <- l
+  out
+}
+
+#' @rdname cut
+#' @param x an object inheriting from class "POSIXct"
+cut.POSIXct <- cut.POSIXt
+
+#' Test class
 #'
 #' @param data data
 #' @param class.vec vector of class names to test
@@ -103,7 +170,7 @@ is_any_class <- function(data, class.vec) {
   any(class(data) %in% class.vec)
 }
 
-#' Title
+#' Test is date/datetime/time
 #'
 #' @param data data
 #'
@@ -137,7 +204,7 @@ is_datetime <- function(data) {
 cut_variable_ui <- function(id) {
   ns <- NS(id)
   tagList(
-    fluidRow(
+    shiny::fluidRow(
       column(
         width = 3,
         virtualSelectInput(
@@ -149,33 +216,7 @@ cut_variable_ui <- function(id) {
       ),
       column(
         width = 3,
-        virtualSelectInput(
-          inputId = ns("method"),
-          label = i18n("Method:"),
-          choices = c(
-            "fixed",
-            # "sd",
-            # "equal",
-            # "pretty",
-            "quantile",
-            # "kmeans",
-            # "hclust",
-            # "bclust",
-            # "fisher",
-            # "jenks",
-            "headtails",
-            # "maximum",
-            # "box",
-            "hour",
-            "day",
-            "week",
-            "month",
-            "quarter",
-            "year"
-          ),
-          selected = "quantile",
-          width = "100%"
-        )
+        shiny::uiOutput(ns("cut_method"))
       ),
       column(
         width = 3,
@@ -253,20 +294,89 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
         data <- req(data_r())
         variable <- req(input$variable)
         req(hasName(data, variable))
+
+        if (is_datetime(data[[variable]])) {
+          brks <- cut(data[[variable]],
+            breaks = input$n_breaks
+          )$brks
+        } else {
+          brks <- classInt::classIntervals(
+            var = data[[variable]],
+            n = input$n_breaks,
+            style = "quantile"
+          )$brks
+        }
+
+        if (is_datetime(data[[variable]])) {
+          lower <- min(data[[variable]], na.rm = TRUE)
+        } else {
+          lower <- floor(min(data[[variable]], na.rm = TRUE))
+        }
+
+        if (is_datetime(data[[variable]])) {
+          upper <- max(data[[variable]], na.rm = TRUE)
+        } else {
+          upper <- ceiling(max(data[[variable]], na.rm = TRUE))
+        }
+
+
         noUiSliderInput(
           inputId = session$ns("fixed_brks"),
           label = i18n("Fixed breaks:"),
-          min = floor(min(data[[variable]], na.rm = TRUE)),
-          max = ceiling(max(data[[variable]], na.rm = TRUE)),
-          value = classInt::classIntervals(
-            var = as.numeric(data[[variable]]),
-            n = input$n_breaks,
-            style = "quantile"
-          )$brks,
+          min = lower,
+          max = upper,
+          value = brks,
           color = datamods:::get_primary_color(),
           width = "100%"
         )
       })
+
+      output$cut_method <- renderUI({
+        data <- req(data_r())
+        variable <- req(input$variable)
+
+        choices <- c(
+          # "quantile"
+          )
+
+        if ("hms" %in% class(data[[variable]])) {
+          choices <- c(choices, "hour")
+        } else if (any(c("POSIXt","Date") %in% class(data[[variable]]))) {
+          choices <- c(
+            choices, "day",
+            "week",
+            "month",
+            "quarter",
+            "year"
+          )
+        } else {
+          choices <- c(
+            choices,
+            "fixed",
+            "quantile",
+            # "sd",
+            # "equal",
+            # "pretty",
+            # "kmeans",
+            # "hclust",
+            # "bclust",
+            # "fisher",
+            # "jenks",
+            "headtails" # ,
+            # "maximum",
+            # "box"
+          )
+        }
+
+        shinyWidgets::virtualSelectInput(
+          inputId = session$ns("method"),
+          label = i18n("Method:"),
+          choices = choices,
+          selected = "quantile",
+          width = "100%"
+        )
+      })
+
 
       breaks_r <- reactive({
         data <- req(data_r())
@@ -275,12 +385,31 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
         req(input$n_breaks, input$method)
         if (input$method == "fixed") {
           req(input$fixed_brks)
-          classInt::classIntervals(
-            var = as.numeric(data[[variable]]),
-            n = input$n_breaks,
-            style = "fixed",
-            fixedBreaks = input$fixed_brks
-          )
+          if (any(c("hms", "POSIXt") %in% class(data[[variable]]))) {
+            cut.POSIXct <- cut.POSIXt
+            f <- cut(data[[variable]], breaks = input$fixed_brks)
+            list(var = f, brks = levels(f))
+          } else {
+            classInt::classIntervals(
+              var = as.numeric(data[[variable]]),
+              n = input$n_breaks,
+              style = "fixed",
+              fixedBreaks = input$fixed_brks
+            )
+          }
+        } else if (input$method == "quantile") {
+          req(input$fixed_brks)
+          if (any(c("hms", "POSIXt") %in% class(data[[variable]]))) {
+            cut.POSIXct <- cut.POSIXt
+            f <- cut(data[[variable]], breaks = input$n_breaks)
+            list(var = f, brks = levels(f))
+          } else {
+            classInt::classIntervals(
+              var = as.numeric(data[[variable]]),
+              n = input$n_breaks,
+              style = "quantile"
+            )
+          }
         } else if (input$method %in% c(
           "day",
           "week",
@@ -318,7 +447,7 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
         variable <- req(input$variable)
         data[[paste0(variable, "_cut")]] <- cut(
           x = data[[variable]],
-          breaks = if (input$method %in% c("day","week","month","quarter","year","hour")) input$method else breaks_r()$brks,
+          breaks = if (input$method %in% c("day", "week", "month", "quarter", "year", "hour")) input$method else breaks_r()$brks,
           include.lowest = input$include_lowest,
           right = input$right
         )

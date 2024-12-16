@@ -40,15 +40,23 @@ server <- function(input, output, session) {
   ## everything else.
   files.to.keep <- list.files("www/")
 
-  v <- shiny::reactiveValues(
+  rv <- shiny::reactiveValues(
     list = NULL,
     ds = NULL,
     input = exists("webResearch_data"),
     local_temp = NULL,
     quarto = NULL,
     test = "no",
-    data = NULL
+    data_original = NULL,
+    data = NULL,
+    data_filtered = NULL
   )
+
+  ##############################################################################
+  #########
+  #########  Data import section
+  #########
+  ##############################################################################
 
   data_file <- datamods::import_file_server(
     id = "file_import",
@@ -65,10 +73,19 @@ server <- function(input, output, session) {
     )
   )
 
+  shiny::observeEvent(data_file$data(), {
+    shiny::req(data_file$data())
+    rv$data_original <- data_file$data()
+  })
+
   data_redcap <- m_redcap_readServer(
     id = "redcap_import",
     output.format = "list"
   )
+
+  shiny::observeEvent(data_redcap(), {
+    rv$data_original <- purrr::pluck(data_redcap(), "data")()
+  })
 
   output$redcap_prev <- DT::renderDT(
     {
@@ -79,67 +96,44 @@ server <- function(input, output, session) {
     server = TRUE
   )
 
-  data_rv <- shiny::reactiveValues(data = NULL)
-  #
-  # shiny::observeEvent(data_file$data(), {
-  #   data_rv$data <- data_file$data() |>
-  #           REDCapCAST::numchar2fct()
-  # })
-  #
-  # shiny::observeEvent(purrr::pluck(ds(), "data")(), {
-  #   data_rv$data <- purrr::pluck(ds(), "data")() |>
-  #           REDCapCAST::parse_data() |>
-  #           REDCapCAST::as_factor() |>
-  #           REDCapCAST::numchar2fct()
-  # })
+  from_env <- import_globalenv_server(
+    id = "env",
+    trigger_return = "change",
+    btn_show_data = FALSE,
+    reset = reactive(input$hidden)
+  )
 
+  shiny::observeEvent(from_env$data(), {
+    shiny::req(from_env$data())
+    rv$data_original <- from_env$data()
+  })
 
   ds <- shiny::reactive({
     # input$file1 will be NULL initially. After the user selects
     # and uploads a file, head of that data file by default,
     # or all rows if selected, will be shown.
-    if (v$input) {
-      out <- webResearch_data
-    } else if (input$source == "file") {
-      req(data_file$data())
-      out <- data_file$data()
-    } else if (input$source == "redcap") {
-      req(purrr::pluck(data_redcap(), "data")())
-      out <- purrr::pluck(data_redcap(), "data")()
-    }
-
-    v$ds <- "loaded"
-    # browser()
-    # if (input$factorize == "yes") {
-    #   out <- out |>
-    #     REDCapCAST::numchar2fct()
+    # if (v$input) {
+    #   out <- webResearch_data
+    # } else if (input$source == "file") {
+    #   req(data_file$data())
+    #   out <- data_file$data()
+    # } else if (input$source == "redcap") {
+    #   req(purrr::pluck(data_redcap(), "data")())
+    #   out <- purrr::pluck(data_redcap(), "data")()
     # }
-    out <- out|>
+
+    req(rv$data_original)
+    rv$data_original <- rv$data_original |>
       REDCapCAST::parse_data() |>
       REDCapCAST::as_factor() |>
       REDCapCAST::numchar2fct()
 
-    data_rv$data <- shiny::reactive(out)
+    rv$ds <- "loaded"
 
-    out
+    rv$data <- rv$data_original
+
+    rv$data_original
   })
-
-  # shiny::reactive({
-  #   if (!is.null(data_rv$data)){
-  #     data_rv$data <- shiny::reactive(data_rv$data() |> REDCapCAST::parse_data() |>
-  #                                         REDCapCAST::as_factor() |>
-  #                                         REDCapCAST::numchar2fct())
-  #   }
-  # })
-
-  output$table <-
-    DT::renderDT(
-      {
-        DT::datatable(
-          ds())
-      },
-      server = FALSE
-    )
 
   ##############################################################################
   #########
@@ -149,28 +143,26 @@ server <- function(input, output, session) {
 
   #########  Modifications
 
-  rv <- shiny::reactiveValues(data = reactive(ds() ))
-
-  observeEvent(ds(), rv$data <- ds())
-  observeEvent(input$data_reset, rv$data <- ds())
+  shiny::observeEvent(rv$data_original, rv$data <- rv$data_original)
+  shiny::observeEvent(input$data_reset, rv$data <- rv$data_original)
 
   ## Using modified version of the datamods::cut_variable_server function
   ## Further modifications are needed to have cut/bin options based on class of variable
   ## Could be defined server-side
-  observeEvent(input$modal_cut, modal_cut_variable("modal_cut"))
+  shiny::observeEvent(input$modal_cut, modal_cut_variable("modal_cut"))
   data_modal_cut <- cut_variable_server(
     id = "modal_cut",
-    data_r = reactive(rv$data)
+    data_r = shiny::reactive(rv$data)
   )
-  observeEvent(data_modal_cut(), rv$data <- data_modal_cut())
+  shiny::observeEvent(data_modal_cut(), rv$data <- data_modal_cut())
 
 
-  observeEvent(input$modal_update, datamods::modal_update_factor("modal_update"))
+  shiny::observeEvent(input$modal_update, datamods::modal_update_factor("modal_update"))
   data_modal_update <- datamods::update_factor_server(
     id = "modal_update",
     data_r = reactive(rv$data)
   )
-  observeEvent(data_modal_update(), {
+  shiny::observeEvent(data_modal_update(), {
     shiny::removeModal()
     rv$data <- data_modal_update()
   })
@@ -178,11 +170,12 @@ server <- function(input, output, session) {
 
 
   # Show result
-  output$table_mod <- toastui::renderDatagrid2({
-    req(rv$data)
+  output$table_mod <- toastui::renderDatagrid({
+    shiny::req(rv$data)
     # data <- rv$data
     toastui::datagrid(
-      data = rv$data#,
+      # data = rv$data # ,
+      data = data_filter()
       # bordered = TRUE,
       # compact = TRUE,
       # striped = TRUE
@@ -211,54 +204,27 @@ server <- function(input, output, session) {
     rv$data <- updated_data()
   })
 
-  # datamods filtering has the least attractive ui, but it does work well
-  #
-  # output$filter_vars <- shiny::renderUI({
-  #   shinyWidgets::virtualSelectInput(
-  #     inputId = "filter_vars",
-  #     selected = NULL,
-  #     label = "Covariables to include",
-  #     choices = colnames(ds()),
-  #     multiple = TRUE,
-  #     updateOn = "change"
-  #   )
-  # })
-  # data_filter <- datamods::filter_data_server(
-  #   id = "filtering",
-  #   data = ds,
-  #   widget_num = "slider",
-  #   widget_date = "slider",
-  #   label_na = "Missing",
-  #   vars = shiny::reactive(input$filter_vars)
-  # )
-  #
-  # output$filtered_table <-
-  #   DT::renderDT(
-  #     {
-  #       DT::datatable(data_filter$filtered())
-  #     },
-  #     server = TRUE
-  #   )
-  #
-  # output$filtered_code <- shiny::renderPrint({
-  #   data_filter$code()
-  # })
-
   # IDEAFilter has the least cluttered UI, but might have a License issue
   data_filter <- IDEAFilter::IDEAFilter("data_filter", data = reactive(rv$data), verbose = TRUE)
 
-  observeEvent(input$save_filter, {
-    rv$data <- data_filter()
-  })
+  # shiny::observeEvent(data_filter(), {
+  #   rv$data_filtered <- data_filter()
+  # })
 
   output$filtered_code <- shiny::renderPrint({
-    gsub("reactive(rv$data)", "data",
-         cat(gsub("%>%", "|> \n ",
-             gsub("\\s{2,}", " ",
-                  paste0(
-                    capture.output(attr(data_filter(), "code")),
-                    collapse = " "))
-    )))
+    cat(gsub(
+      "%>%", "|> \n ",
+      gsub(
+        "\\s{2,}", " ",
+        gsub(
+          "reactive(rv$data)", "data",
+          paste0(
+            capture.output(attr(data_filter(), "code")),
+            collapse = " "
+          )
+        )
+      )
+    ))
   })
 
 
@@ -276,7 +242,7 @@ server <- function(input, output, session) {
       inputId = "include_vars",
       selected = NULL,
       label = "Covariables to include",
-      choices = colnames(rv$data),
+      choices = colnames(data_filter()),
       multiple = TRUE
     )
   })
@@ -286,9 +252,29 @@ server <- function(input, output, session) {
       inputId = "outcome_var",
       selected = NULL,
       label = "Select outcome variable",
-      choices = colnames(rv$data),
+      choices = colnames(data_filter()),
       multiple = FALSE
     )
+  })
+
+
+  output$factor_vars <- shiny::renderUI({
+    shiny::selectizeInput(
+      inputId = "factor_vars",
+      selected = colnames(data_filter())[sapply(data_filter(), is.factor)],
+      label = "Covariables to format as categorical",
+      choices = colnames(data_filter()),
+      multiple = TRUE
+    )
+  })
+
+  base_vars <- shiny::reactive({
+    if (is.null(input$include_vars)) {
+      out <- colnames(data_filter())
+    } else {
+      out <- unique(c(input$include_vars, input$outcome_var))
+    }
+    return(out)
   })
 
   output$strat_var <- shiny::renderUI({
@@ -296,28 +282,9 @@ server <- function(input, output, session) {
       inputId = "strat_var",
       selected = "none",
       label = "Select variable to stratify baseline",
-      choices = c("none", colnames(rv$data[base_vars()])),
+      choices = c("none", colnames(data_filter()[base_vars()])),
       multiple = FALSE
     )
-  })
-
-  output$factor_vars <- shiny::renderUI({
-    shiny::selectizeInput(
-      inputId = "factor_vars",
-      selected = colnames(rv$data)[sapply(rv$data, is.factor)],
-      label = "Covariables to format as categorical",
-      choices = colnames(rv$data),
-      multiple = TRUE
-    )
-  })
-
-  base_vars <- shiny::reactive({
-    if (is.null(input$include_vars)) {
-      out <- colnames(rv$data)
-    } else {
-      out <- unique(c(input$include_vars, input$outcome_var))
-    }
-    return(out)
   })
 
   ## Have a look at column filters at some point
@@ -353,16 +320,10 @@ server <- function(input, output, session) {
       # browser()
       # Assumes all character variables can be formatted as factors
       # data <- data_filter$filtered() |>
-      data <- rv$data |>
+      data <- data_filter() |>
         dplyr::mutate(dplyr::across(dplyr::where(is.character), as.factor)) |>
         REDCapCAST::fct_drop.data.frame() |>
         factorize(vars = input$factor_vars)
-
-      # if (is.factor(data[[input$strat_var]])) {
-      #   by.var <- input$strat_var
-      # } else {
-      #   by.var <- NULL
-      # }
 
       if (input$strat_var == "none") {
         by.var <- NULL
@@ -398,18 +359,10 @@ server <- function(input, output, session) {
           )
         })
 
-      # browser()
-      # check <- performance::check_model(purrr::pluck(models,"Multivariable") |>
-      #                                     (\(x){
-      #                                       class(x) <- class(x)[class(x) != "webresearch_model"]
-      #                                       return(x)
-      #                                     })())
-
       check <- purrr::pluck(models, "Multivariable") |>
         performance::check_model()
 
-
-      v$list <- list(
+      rv$list <- list(
         data = data,
         check = check,
         table1 = data |>
@@ -442,12 +395,12 @@ server <- function(input, output, session) {
       )
 
       output$table1 <- gt::render_gt(
-        v$list$table1 |>
+        rv$list$table1 |>
           gtsummary::as_gt()
       )
 
       output$table2 <- gt::render_gt(
-        v$list$table2 |>
+        rv$list$table2 |>
           gtsummary::as_gt()
       )
 
@@ -469,10 +422,19 @@ server <- function(input, output, session) {
   )
 
 
+  shiny::conditionalPanel(
+    condition = "output.uploaded == 'yes'",
+  )
+
+  # observeEvent(input$act_start, {
+  #   nav_show(id = "overview",target = "Import"
+  #   )
+  # })
+
 
 
   output$uploaded <- shiny::reactive({
-    if (is.null(v$ds)) {
+    if (is.null(rv$ds)) {
       "no"
     } else {
       "yes"
@@ -481,15 +443,17 @@ server <- function(input, output, session) {
 
   shiny::outputOptions(output, "uploaded", suspendWhenHidden = FALSE)
 
-  output$has_input <- shiny::reactive({
-    if (v$input) {
-      "yes"
-    } else {
-      "no"
-    }
-  })
 
-  shiny::outputOptions(output, "has_input", suspendWhenHidden = FALSE)
+  # Reimplement from environment at later time
+  # output$has_input <- shiny::reactive({
+  #   if (rv$input) {
+  #     "yes"
+  #   } else {
+  #     "no"
+  #   }
+  # })
+
+  # shiny::outputOptions(output, "has_input", suspendWhenHidden = FALSE)
 
   # Could be rendered with other tables or should show progress
   # Investigate quarto render problems
@@ -502,7 +466,7 @@ server <- function(input, output, session) {
       ## Notification is not progressing
       ## Presumably due to missing
       shiny::withProgress(message = "Generating report. Hold on for a moment..", {
-        v$list |>
+        rv$list |>
           write_quarto(
             output_format = type,
             input = file.path(getwd(), "www/report.qmd")
