@@ -90,7 +90,7 @@ library(shiny)
 #'
 #' @rdname cut
 #'
-#' @return
+#' @return factor
 #' @export
 #'
 #' @examples
@@ -114,7 +114,11 @@ cut.hms <- function(x, breaks, ...) {
 
 #' @rdname cut
 #' @param x an object inheriting from class "POSIXt" or "Date"
-cut.POSIXt <- function(x, breaks, right = FALSE, include.lowest = TRUE, ...) {
+#'
+#' @examples
+#' readr::parse_datetime(c("1992-02-01 01:00:20", "1992-02-06 03:00:20", "1992-05-01 01:20:20", "1992-09-01 08:20:20", "1999-02-01 21:20:20", "1992-12-01 03:02:20")) |> cut(2)
+#' readr::parse_datetime(c("1992-02-01 01:00:20", "1992-02-06 03:00:20", "1992-05-01 01:20:20", "1992-09-01 08:20:20", "1999-02-01 21:20:20", "1992-12-01 03:02:20")) |> cut(breaks="weekday")
+cut.POSIXt <- function(x, breaks, right = FALSE, include.lowest = TRUE, start.on.monday=TRUE, ...) {
   breaks_o <- breaks
   # browser()
   if (is.numeric(breaks)) {
@@ -127,14 +131,22 @@ cut.POSIXt <- function(x, breaks, right = FALSE, include.lowest = TRUE, ...) {
     )
   }
 
+  if(identical(breaks,"weekday")){
+    days <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
+              "Sunday")
+    if (!start.on.monday){
+      days <- days[c(7,1:6)]
+    }
+    out <- factor(weekdays(x),levels=days) |> forcats::fct_drop()
+  } else {
   ## Doesn't really work very well for breaks other than the special character cases as right border is excluded
   out <- base::cut.POSIXt(x, breaks=breaks,right=right,...) |> forcats::fct_drop()
   # browser()
-
+}
   l <- levels(out)
   if (is.numeric(breaks_o)) {
     l <- breaks
-  } else if (is.character(breaks) && length(breaks) == 1) {
+  } else if (is.character(breaks) && length(breaks) == 1 && !identical(breaks,"weekday")) {
     if (include.lowest) {
       if (right) {
         l <- c(l, min(as.character(x)))
@@ -154,12 +166,34 @@ cut.POSIXt <- function(x, breaks, right = FALSE, include.lowest = TRUE, ...) {
 #' @param x an object inheriting from class "POSIXct"
 cut.POSIXct <- cut.POSIXt
 
+#' @rdname cut
+#' @param x an object inheriting from class "POSIXct"
+#'
+#' @examples
+#' as.Date(c("1992-02-01 01:00:20", "1992-02-06 03:00:20", "1992-05-01 01:20:20", "1992-09-01 08:20:20", "1999-02-01 21:20:20", "1992-12-01 03:02:20")) |> cut(2)
+#' as.Date(c("1992-02-01 01:00:20", "1992-02-06 03:00:20", "1992-05-01 01:20:20", "1992-09-01 08:20:20", "1999-02-01 21:20:20", "1992-12-01 03:02:20")) |> cut(breaks="weekday")
+cut.Date <- function(x,breaks,start.on.monday=TRUE,...){
+  if(identical(breaks,"weekday")){
+    days <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
+              "Sunday")
+    if (!start.on.monday){
+      days <- days[c(7,1:6)]
+    }
+    out <- factor(weekdays(x),levels=days) |> forcats::fct_drop()
+  } else {
+    ## Doesn't really work very well for breaks other than the special character cases as right border is excluded
+    out <- base::cut.Date(x, breaks=breaks,...) |> forcats::fct_drop()
+    # browser()
+  }
+  out
+}
+
 #' Test class
 #'
 #' @param data data
 #' @param class.vec vector of class names to test
 #'
-#' @return
+#' @return factor
 #' @export
 #'
 #' @examples
@@ -174,7 +208,7 @@ is_any_class <- function(data, class.vec) {
 #'
 #' @param data data
 #'
-#' @return
+#' @return factor
 #' @export
 #'
 #' @examples
@@ -200,7 +234,6 @@ is_datetime <- function(data) {
 #'
 #' @name cut-variable
 #'
-#' @example examples/cut_variable.R
 cut_variable_ui <- function(id) {
   ns <- NS(id)
   tagList(
@@ -343,7 +376,9 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
           choices <- c(choices, "hour")
         } else if (any(c("POSIXt","Date") %in% class(data[[variable]]))) {
           choices <- c(
-            choices, "day",
+            choices,
+            "day",
+            "weekday",
             "week",
             "month",
             "quarter",
@@ -412,6 +447,7 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
           }
         } else if (input$method %in% c(
           "day",
+          "weekday",
           "week",
           "month",
           "quarter",
@@ -447,7 +483,7 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
         variable <- req(input$variable)
         data[[paste0(variable, "_cut")]] <- cut(
           x = data[[variable]],
-          breaks = if (input$method %in% c("day", "week", "month", "quarter", "year", "hour")) input$method else breaks_r()$brks,
+          breaks = if (input$method %in% c("day", "weekday", "week", "month", "quarter", "year", "hour")) input$method else breaks_r()$brks,
           include.lowest = input$include_lowest,
           right = input$right
         )

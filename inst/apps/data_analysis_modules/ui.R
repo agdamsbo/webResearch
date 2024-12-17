@@ -30,17 +30,22 @@ ui_elements <- list(
         shinyWidgets::radioGroupButtons(
           inputId = "source",
           # label = "Choice: ",
-          choices = c("File upload" = "file", "REDCap server" = "redcap","Sample data"="env"),
-          checkIcon = list(
-            yes = icon("square-check"),
-            no = icon("square")
-          )
+          choices = c(
+            "File upload" = "file",
+            "REDCap server" = "redcap",
+            "Sample data" = "env"
+          ),
+          # checkIcon = list(
+          #   yes = icon("square-check"),
+          #   no = icon("square")
+          # ),
+          width = "100%"
         ),
         shiny::conditionalPanel(
           condition = "input.source=='file'",
           datamods::import_file_ui("file_import",
-                                   title = "Choose a datafile to upload",
-                                   file_extensions = c(".csv", ".txt", ".xls", ".xlsx", ".rds", ".fst", ".sas7bdat", ".sav", ".ods", ".dta")
+            title = "Choose a datafile to upload",
+            file_extensions = c(".csv", ".txt", ".xls", ".xlsx", ".rds", ".fst", ".sas7bdat", ".sav", ".ods", ".dta")
           )
         ),
         shiny::conditionalPanel(
@@ -57,13 +62,7 @@ ui_elements <- list(
       ),
       column(
         width = 6,
-        shiny::markdown("
-                           # Welcome
-
-                           This is the ***freesearchR*** web data analysis tool. An opiniotaed tool for easy data analysis at the hands of the clinician.
-
-                           By intention, this is a focused app, with only few data modification tools included to keep the workflow streamlined.
-                           ")
+        shiny::markdown(readLines("www/intro.md"))
       )
     ),
     shiny::conditionalPanel(
@@ -79,10 +78,10 @@ ui_elements <- list(
   #########
   ##############################################################################
   "overview" =
-    # bslib::nav_panel_hidden(
+  # bslib::nav_panel_hidden(
     bslib::nav_panel(
       # value = "overview",
-      title = "Overview and modifications",
+      title = "Modifications",
       bslib::navset_bar(
         fillable = TRUE,
         # bslib::nav_panel(
@@ -170,7 +169,7 @@ ui_elements <- list(
   #########
   ##############################################################################
   "analyze" =
-    # bslib::nav_panel_hidden(
+  # bslib::nav_panel_hidden(
     bslib::nav_panel(
       # value = "analyze",
       title = "Analyses",
@@ -230,8 +229,8 @@ ui_elements <- list(
             icon = shiny::icon("pencil", lib = "glyphicon"),
             label_busy = "Working...",
             icon_busy = fontawesome::fa_i("arrows-rotate",
-                                          class = "fa-spin",
-                                          "aria-hidden" = "true"
+              class = "fa-spin",
+              "aria-hidden" = "true"
             ),
             type = "primary",
             auto_reset = TRUE
@@ -260,7 +259,8 @@ ui_elements <- list(
   ##############################################################################
   "docs" = bslib::nav_panel(
     title = "Documentation",
-    shiny::markdown(readLines(here::here("inst/apps/data_analysis_modules/www/intro.md"))),
+    # shiny::tags$iframe("www/docs.html", height=600, width=535),
+    shiny::htmlOutput("docs_file"),
     shiny::br()
   )
 )

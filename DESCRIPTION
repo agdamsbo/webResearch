@@ -43,7 +43,6 @@ Imports:
     datamods,
     toastui,
     webshot,
-    matPkg,
     lubridate
 Suggests: 
     styler,

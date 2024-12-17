@@ -31,14 +31,18 @@ library(IDEAFilter)
 # }
 # library(webResearch)
 
-if (file.exists(here::here("functions.R"))) {
-  source(here::here("functions.R"))
-}
+source(here::here("functions.R"))
 
 server <- function(input, output, session) {
   ## Listing files in www in session start to keep when ending and removing
   ## everything else.
   files.to.keep <- list.files("www/")
+
+  output$docs_file <- renderUI({
+    # shiny::includeHTML("www/docs.html")
+    HTML(readLines("www/docs.html"))
+  })
+
 
   rv <- shiny::reactiveValues(
     list = NULL,
@@ -193,7 +197,7 @@ server <- function(input, output, session) {
   )
 
   output$original_str <- renderPrint({
-    str(ds())
+    str(rv$data_original)
   })
 
   output$modified_str <- renderPrint({
@@ -290,25 +294,25 @@ server <- function(input, output, session) {
   ## Have a look at column filters at some point
   ## There should be a way to use the filtering the filter data for further analyses
   ## Disabled for now, as the JS is apparently not isolated
-  output$data_table <-
-    DT::renderDT(
-      {
-        DT::datatable(ds()[base_vars()])
-      },
-      server = FALSE
-    )
-
-  output$data.classes <- gt::render_gt({
-    shiny::req(input$file)
-    data.frame(matrix(sapply(ds(), \(.x){
-      class(.x)[1]
-    }), nrow = 1)) |>
-      stats::setNames(names(ds())) |>
-      gt::gt()
-  })
+  # output$data_table <-
+  #   DT::renderDT(
+  #     {
+  #       DT::datatable(ds()[base_vars()])
+  #     },
+  #     server = FALSE
+  #   )
+  #
+  # output$data.classes <- gt::render_gt({
+  #   shiny::req(input$file)
+  #   data.frame(matrix(sapply(ds(), \(.x){
+  #     class(.x)[1]
+  #   }), nrow = 1)) |>
+  #     stats::setNames(names(ds())) |>
+  #     gt::gt()
+  # })
 
   shiny::observeEvent(input$act_start, {
-    bslib::nav_select(id = "main_panel", selected = "Overview and modifications")
+    bslib::nav_select(id = "main_panel", selected = "Modifications")
   })
 
   shiny::observeEvent(

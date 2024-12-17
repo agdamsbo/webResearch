@@ -5,12 +5,14 @@
 \alias{m_redcap_readServer}
 \title{Shiny module to browser and export REDCap data}
 \usage{
-m_redcap_readUI(id)
+m_redcap_readUI(id, include_title = TRUE)
 
-m_redcap_readServer(id, output.format = "df")
+m_redcap_readServer(id, output.format = c("df", "teal", "list"))
 }
 \arguments{
 \item{id}{Namespace id}
+
+\item{include_title}{logical to include title}
 
 \item{output.format}{data.frame ("df") or teal data object ("teal")}
 }

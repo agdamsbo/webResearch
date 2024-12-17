@@ -1,0 +1,45 @@
+---
+title: "***freesearcheR*** platform documentation"
+format:
+  html:
+    self-contained: true
+    minimal: true
+---
+
+# Welcome!
+
+So glad to see you here! Welcome to test this early concept of a platform to easily explore, manipulate and analyse clinical data.
+
+Below will be a more detailed description of the included features and possibilities, as well as the planned and possible feature additions.
+
+## Contribute
+
+Contributions are very welcome. If you find anything odd, or you think of features to add or remove, please [share and report on the project page on GitHub](https://github.com/agdamsbo/webResearch/issues).
+
+## Roadmap
+
+-   [ ] Stratified analyses
+
+-   Additional study designs:
+
+    -   [x] Cross-sectional data analyses
+
+    -   [ ] Longitudinal data analyses
+
+    -   [ ] Survival analysis
+
+-   More detailed variable browser
+
+    -   [ ] Add histograms for data distribution
+
+    -   [ ] Option to edit variable labels for nicer tables
+
+-   [ ] Plot regression analyses results
+
+-   [ ] Export modified data
+
+-   [ ] Include reproducible code for all steps
+
+-   [ ] Modify factor levels (including naming, order, collapsing, removing)
+
+-   [ ] More options for date/datetime/time grouping/factoring
