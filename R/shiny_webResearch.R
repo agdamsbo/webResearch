@@ -12,7 +12,7 @@
 #' mtcars |> shiny_webResearch(launch.browser = TRUE)
 #' }
 shiny_webResearch <- function(data = NULL, ...) {
-  appDir <- system.file("apps", "data_analysis", package = "webResearch")
+  appDir <- system.file("apps", "data_analysis_modules", package = "webResearch")
   if (appDir == "") {
     stop("Could not find the app directory. Try re-installing `webResearch`.", call. = FALSE)
   }
