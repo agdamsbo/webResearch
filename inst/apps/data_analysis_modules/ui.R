@@ -239,7 +239,7 @@ ui_elements <- list(
               label = "Output format",
               selected = NULL,
               choices = list(
-                "Word" = "docx",
+                "MS Word" = "docx",
                 "LibreOffice" = "odt"
                 # ,
                 # "PDF" = "pdf",
@@ -252,7 +252,8 @@ ui_elements <- list(
               outputId = "report",
               label = "Download",
               icon = shiny::icon("download")
-            )
+            ),
+          shiny::helpText("If choosing to output to MS Word, please note, that when opening the document, two errors will pop-up. Choose to repair and choose not to update references. The issue is being worked on. You can always choose LibreOffice instead.")
           # )
           # )
         ),
