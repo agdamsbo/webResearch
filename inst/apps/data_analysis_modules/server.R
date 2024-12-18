@@ -64,7 +64,7 @@ server <- function(input, output, session) {
     ds = NULL,
     input = exists("webResearch_data"),
     local_temp = NULL,
-    quarto = NULL,
+    ready = NULL,
     test = "no",
     data_original = NULL,
     data = NULL,
@@ -436,6 +436,8 @@ server <- function(input, output, session) {
 
         # patchwork::wrap_plots(ncol=1) +
         # patchwork::plot_annotation(title = 'Multivariable regression model checks')
+
+        rv$ready <- "ready"
       })
     }
   )
@@ -462,6 +464,15 @@ server <- function(input, output, session) {
 
   shiny::outputOptions(output, "uploaded", suspendWhenHidden = FALSE)
 
+  output$ready <- shiny::reactive({
+    if (is.null(rv$ready)) {
+      "no"
+    } else {
+      "yes"
+    }
+  })
+
+  shiny::outputOptions(output, "ready", suspendWhenHidden = FALSE)
 
   # Reimplement from environment at later time
   # output$has_input <- shiny::reactive({
@@ -484,7 +495,7 @@ server <- function(input, output, session) {
     content = function(file, type = input$output_type) {
       ## Notification is not progressing
       ## Presumably due to missing
-      shiny::withProgress(message = "Generating report. Hold on for a moment..", {
+      shiny::withProgress(message = "Generating the report. Hold on for a moment..", {
         rv$list |>
           write_quarto(
             output_format = type,

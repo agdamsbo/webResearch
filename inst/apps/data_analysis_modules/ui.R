@@ -225,10 +225,35 @@ ui_elements <- list(
               class = "fa-spin",
               "aria-hidden" = "true"
             ),
-            type = "primary",
+            type = "secondary",
             auto_reset = TRUE
           ),
-          shiny::helpText("If you change the parameters, press 'Analyse' again to update the tables")
+          shiny::helpText("If you change the parameters, press 'Analyse' again to update the tables"),
+          # shiny::conditionalPanel(
+          #   condition = "output.ready=='yes'",
+            shiny::tags$hr(),
+            shiny::h4("Download results"),
+            shiny::helpText("Choose your favourite output file format for further work, and download, when the analyses are done."),
+            shiny::selectInput(
+              inputId = "output_type",
+              label = "Output format",
+              selected = NULL,
+              choices = list(
+                "Word" = "docx",
+                "LibreOffice" = "odt"
+                # ,
+                # "PDF" = "pdf",
+                # "All the above" = "all"
+              )
+            ),
+            shiny::br(),
+            # Button
+            shiny::downloadButton(
+              outputId = "report",
+              label = "Download",
+              icon = shiny::icon("download")
+            )
+          # )
           # )
         ),
         bslib::nav_panel(
@@ -260,8 +285,10 @@ ui_elements <- list(
 
 # Initial attempt at creating light and dark versions
 light <- custom_theme()
-dark <- custom_theme(bg = "#000",
-                     fg="#fff")
+dark <- custom_theme(
+  bg = "#000",
+  fg = "#fff"
+)
 
 # Fonts to consider:
 # https://webdesignerdepot.com/17-open-source-fonts-youll-actually-love/

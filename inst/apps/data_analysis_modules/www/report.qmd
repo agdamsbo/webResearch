@@ -16,6 +16,7 @@ params:
 web_data <- readr::read_rds(file = params$data.file)
 library(gtsummary)
 library(gt)
+library(flextable)
 library(easystats)
 library(patchwork)
 # library(webResearch)
@@ -36,7 +37,9 @@ Below is the baseline characteristics plotted.
 ```{r}
 #| label: tbl-baseline
 #| tbl-cap: Baseline characteristics of included data
-web_data$table1
+web_data$table1 |> 
+  gtsummary::as_flex_table() |> 
+  flextable::set_table_properties(width = 1, layout = "autofit")
 ```
 
 Here are the regression results.
@@ -44,8 +47,11 @@ Here are the regression results.
 ```{r}
 #| label: tbl-regression
 #| tbl-cap: Regression analysis results
-web_data$table2
+web_data$table2|> 
+  gtsummary::as_flex_table() |> 
+  flextable::set_table_properties(width = 1, layout = "autofit")
 ```
+
 
 ## Discussion
 
