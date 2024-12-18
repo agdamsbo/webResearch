@@ -534,6 +534,20 @@
       ],
       "Hash": "53142c51f78663c89ff79091874319e4"
     },
+    "bsicons": {
+      "Package": "bsicons",
+      "Version": "0.1.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "cli",
+        "htmltools",
+        "rlang",
+        "utils"
+      ],
+      "Hash": "d8f892fbd94d0b9b1f6d688b05b8633c"
+    },
     "bslib": {
       "Package": "bslib",
       "Version": "0.8.0",
@@ -2597,6 +2611,19 @@
       ],
       "Hash": "244b87e40159d58b8c84cb019e5bd16c"
     },
+    "reshape2": {
+      "Package": "reshape2",
+      "Version": "1.4.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "Rcpp",
+        "plyr",
+        "stringr"
+      ],
+      "Hash": "bb5996d0bd962d214a11140d77589917"
+    },
     "rio": {
       "Package": "rio",
       "Version": "1.2.3",
@@ -3288,6 +3315,26 @@
         "systemfonts"
       ],
       "Hash": "573e0d015b7fc3e555f83e254cad7533"
+    },
+    "thematic": {
+      "Package": "thematic",
+      "Version": "0.1.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "farver",
+        "ggplot2",
+        "grDevices",
+        "graphics",
+        "grid",
+        "rappdirs",
+        "rlang",
+        "rstudioapi",
+        "scales",
+        "utils"
+      ],
+      "Hash": "4682b2074c3822b6e1de33b06a868e3c"
     },
     "tibble": {
       "Package": "tibble",

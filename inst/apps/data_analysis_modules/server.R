@@ -33,18 +33,31 @@ library(DT)
 # }
 # library(webResearch)
 
-source(here::here("functions.R"))
+# source("functions.R")
+
+
+
+# light <- custom_theme()
+#
+# dark <- custom_theme(bg = "#000",
+#                      fg="#fff")
+
+
 
 server <- function(input, output, session) {
   ## Listing files in www in session start to keep when ending and removing
   ## everything else.
   files.to.keep <- list.files("www/")
 
+  # observeEvent(input$dark_mode,{
+  #   session$setCurrentTheme(
+  #   if (isTRUE(input$dark_mode)) dark else light
+  # )})
+
   output$docs_file <- renderUI({
     # shiny::includeHTML("www/docs.html")
     HTML(readLines("www/docs.html"))
   })
-
 
   rv <- shiny::reactiveValues(
     list = NULL,
@@ -491,3 +504,5 @@ server <- function(input, output, session) {
     })
   })
 }
+
+

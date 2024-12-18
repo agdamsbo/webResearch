@@ -43,7 +43,10 @@ Imports:
     datamods,
     toastui,
     webshot,
-    lubridate
+    lubridate,
+    bsicons,
+    thematic,
+    reshape2
 Suggests: 
     styler,
     devtools,

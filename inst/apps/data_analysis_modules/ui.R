@@ -258,15 +258,18 @@ ui_elements <- list(
   )
 )
 
+# Initial attempt at creating light and dark versions
+light <- custom_theme()
+dark <- custom_theme(bg = "#000",
+                     fg="#fff")
+
+# Fonts to consider:
+# https://webdesignerdepot.com/17-open-source-fonts-youll-actually-love/
+
 ui <- bslib::page(
   title = "freesearcheR",
-  theme = bslib::bs_theme(
-    primary = "#1E4A8F",
-    secondary = "#FF6F61",
-    bootswatch = "minty",
-    base_font = bslib::font_google("Montserrat"),
-    code_font = bslib::font_google("Open Sans")
-  ),
+  theme = light,
+  shiny::useBusyIndicators(),
   bslib::page_navbar(
     id = "main_panel",
     ui_elements$import,
