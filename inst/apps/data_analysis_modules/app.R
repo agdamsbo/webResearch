@@ -296,7 +296,7 @@ cut_variable_ui <- function(id) {
         numericInput(
           inputId = ns("n_breaks"),
           label = i18n("Number of breaks:"),
-          value = 5,
+          value = 3,
           min = 2,
           max = 12,
           width = "100%"
@@ -2215,7 +2215,7 @@ server <- function(input, output, session) {
   })
 
   rv <- shiny::reactiveValues(
-    list = NULL,
+    list = list(),
     ds = NULL,
     input = exists("webResearch_data"),
     local_temp = NULL,
@@ -2494,106 +2494,151 @@ server <- function(input, output, session) {
       # browser()
       # Assumes all character variables can be formatted as factors
       # data <- data_filter$filtered() |>
-      data <- data_filter() |>
-        dplyr::mutate(dplyr::across(dplyr::where(is.character), as.factor)) |>
-        REDCapCAST::fct_drop.data.frame() |>
-        factorize(vars = input$factor_vars)
+      tryCatch(
+        {
+          data <- data_filter() |>
+            dplyr::mutate(dplyr::across(dplyr::where(is.character), as.factor)) |>
+            REDCapCAST::fct_drop.data.frame() |>
+            factorize(vars = input$factor_vars)
 
-      if (input$strat_var == "none") {
-        by.var <- NULL
-      } else {
-        by.var <- input$strat_var
-      }
+          if (input$strat_var == "none") {
+            by.var <- NULL
+          } else {
+            by.var <- input$strat_var
+          }
 
-      data <- data[base_vars()]
+          data <- data[base_vars()]
 
-      # model <- data |>
-      #   regression_model(
-      #     outcome.str = input$outcome_var,
-      #     auto.mode = input$regression_auto == 1,
-      #     formula.str = input$regression_formula,
-      #     fun = input$regression_fun,
-      #     args.list = eval(parse(text = paste0("list(", input$regression_args, ")")))
-      #   )
+          # model <- data |>
+          #   regression_model(
+          #     outcome.str = input$outcome_var,
+          #     auto.mode = input$regression_auto == 1,
+          #     formula.str = input$regression_formula,
+          #     fun = input$regression_fun,
+          #     args.list = eval(parse(text = paste0("list(", input$regression_args, ")")))
+          #   )
 
-      models <- list(
-        "Univariable" = regression_model_uv,
-        "Multivariable" = regression_model
-      ) |>
-        lapply(\(.fun){
-          do.call(
-            .fun,
-            c(
-              list(data = data),
-              list(outcome.str = input$outcome_var),
-              list(formula.str = input$regression_formula),
-              list(fun = input$regression_fun),
-              list(args.list = eval(parse(text = paste0("list(", input$regression_args, ")"))))
-            )
-          )
-        })
-
-      check <- purrr::pluck(models, "Multivariable") |>
-        performance::check_model()
-
-      rv$list <- list(
-        data = data,
-        check = check,
-        table1 = data |>
-          baseline_table(
-            fun.args =
-              list(
-                by = by.var
-              )
+          models <- list(
+            "Univariable" = regression_model_uv,
+            "Multivariable" = regression_model
           ) |>
-          (\(.x){
-            if (!is.null(by.var)) {
-              .x |> gtsummary::add_overall()
-            } else {
-              .x
-            }
-          })() |>
-          (\(.x){
-            if (input$add_p == "yes") {
-              .x |>
-                gtsummary::add_p() |>
-                gtsummary::bold_p()
-            } else {
-              .x
-            }
-          })(),
-        table2 = models |>
-          purrr::map(regression_table) |>
-          tbl_merge(),
-        input = input
+            lapply(\(.fun){
+              do.call(
+                .fun,
+                c(
+                  list(data = data),
+                  list(outcome.str = input$outcome_var),
+                  list(formula.str = input$regression_formula),
+                  list(fun = input$regression_fun),
+                  list(args.list = eval(parse(text = paste0("list(", input$regression_args, ")"))))
+                )
+              )
+            })
+
+          rv$list$data <- data
+
+
+
+          rv$list$check <- purrr::pluck(models, "Multivariable") |>
+            performance::check_model()
+
+          rv$list$table1 <- data |>
+            baseline_table(
+              fun.args =
+                list(
+                  by = by.var
+                )
+            ) |>
+            (\(.x){
+              if (!is.null(by.var)) {
+                .x |> gtsummary::add_overall()
+              } else {
+                .x
+              }
+            })() |>
+            (\(.x){
+              if (input$add_p == "yes") {
+                .x |>
+                  gtsummary::add_p() |>
+                  gtsummary::bold_p()
+              } else {
+                .x
+              }
+            })()
+
+          rv$list$table2 <- models |>
+            purrr::map(regression_table) |>
+            tbl_merge()
+
+
+          rv$list$input <- input
+
+
+          # rv$list <- list(
+          #   data = data,
+          #   check = check,
+          #   table1 = data |>
+          #     baseline_table(
+          #       fun.args =
+          #         list(
+          #           by = by.var
+          #         )
+          #     ) |>
+          #     (\(.x){
+          #       if (!is.null(by.var)) {
+          #         .x |> gtsummary::add_overall()
+          #       } else {
+          #         .x
+          #       }
+          #     })() |>
+          #     (\(.x){
+          #       if (input$add_p == "yes") {
+          #         .x |>
+          #           gtsummary::add_p() |>
+          #           gtsummary::bold_p()
+          #       } else {
+          #         .x
+          #       }
+          #     })(),
+          #   table2 = models |>
+          #     purrr::map(regression_table) |>
+          #     tbl_merge(),
+          #   input = input
+          # )
+
+          output$table1 <- gt::render_gt(
+            rv$list$table1 |>
+              gtsummary::as_gt()
+          )
+
+          output$table2 <- gt::render_gt(
+            rv$list$table2 |>
+              gtsummary::as_gt()
+          )
+
+          output$check <- shiny::renderPlot({
+            p <- plot(rv$list$check) +
+              patchwork::plot_annotation(title = "Multivariable regression model checks")
+            p
+            # Generate checks in one column
+            # layout <- sapply(seq_len(length(p)), \(.x){
+            #   patchwork::area(.x, 1)
+            # })
+            #
+            # p + patchwork::plot_layout(design = Reduce(c, layout))
+
+            # patchwork::wrap_plots(ncol=1) +
+            # patchwork::plot_annotation(title = 'Multivariable regression model checks')
+          })
+        },
+        warning = function(warn) {
+          showNotification(paste0(warn), type = "warning")
+        },
+        error = function(err) {
+          showNotification(paste0("There was the following error. Inspect your data and adjust settings. Error: ",err), type = "err")
+        }
       )
-
-      output$table1 <- gt::render_gt(
-        rv$list$table1 |>
-          gtsummary::as_gt()
-      )
-
-      output$table2 <- gt::render_gt(
-        rv$list$table2 |>
-          gtsummary::as_gt()
-      )
-
-      output$check <- shiny::renderPlot({
-        p <- plot(check) +
-          patchwork::plot_annotation(title = "Multivariable regression model checks")
-        p
-        # Generate checks in one column
-        # layout <- sapply(seq_len(length(p)), \(.x){
-        #   patchwork::area(.x, 1)
-        # })
-        #
-        # p + patchwork::plot_layout(design = Reduce(c, layout))
-
-        # patchwork::wrap_plots(ncol=1) +
-        # patchwork::plot_annotation(title = 'Multivariable regression model checks')
-
-        rv$ready <- "ready"
-      })
+      rv$ready <- "ready"
     }
   )
 
@@ -2670,8 +2715,6 @@ server <- function(input, output, session) {
     })
   })
 }
-
-
 
 
 ########

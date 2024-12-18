@@ -256,7 +256,7 @@ cut_variable_ui <- function(id) {
         numericInput(
           inputId = ns("n_breaks"),
           label = i18n("Number of breaks:"),
-          value = 5,
+          value = 3,
           min = 2,
           max = 12,
           width = "100%"

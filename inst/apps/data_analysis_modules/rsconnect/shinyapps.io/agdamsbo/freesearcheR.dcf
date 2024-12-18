@@ -5,6 +5,6 @@ account: agdamsbo
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 13611288
-bundleId:
+bundleId: 9539876
 url: https://agdamsbo.shinyapps.io/freesearcheR/
 version: 1
