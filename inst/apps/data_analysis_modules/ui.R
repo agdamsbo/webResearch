@@ -26,7 +26,7 @@ ui_elements <- list(
           choices = c(
             "File upload" = "file",
             "REDCap server" = "redcap",
-            "Sample data" = "env"
+            "Local data" = "env"
           ),
           # checkIcon = list(
           #   yes = icon("square-check"),
@@ -63,7 +63,14 @@ ui_elements <- list(
       DT::DTOutput(outputId = "redcap_prev")
     ),
     shiny::br(),
-    shiny::actionButton(inputId = "act_start", label = "Start")
+    shiny::actionButton(
+      inputId = "act_start",
+      label = "Start",
+      width = "100%",
+      icon = shiny::icon("play")
+    ),
+    shiny::br(),
+    shiny::br()
   ),
   ##############################################################################
   #########
@@ -71,7 +78,7 @@ ui_elements <- list(
   #########
   ##############################################################################
   "overview" =
-  # bslib::nav_panel_hidden(
+    # bslib::nav_panel_hidden(
     bslib::nav_panel(
       # value = "overview",
       title = "Modifications",
@@ -162,7 +169,7 @@ ui_elements <- list(
   #########
   ##############################################################################
   "analyze" =
-  # bslib::nav_panel_hidden(
+    # bslib::nav_panel_hidden(
     bslib::nav_panel(
       # value = "analyze",
       title = "Analyses",
@@ -222,8 +229,8 @@ ui_elements <- list(
             icon = shiny::icon("pencil", lib = "glyphicon"),
             label_busy = "Working...",
             icon_busy = fontawesome::fa_i("arrows-rotate",
-              class = "fa-spin",
-              "aria-hidden" = "true"
+                                          class = "fa-spin",
+                                          "aria-hidden" = "true"
             ),
             type = "secondary",
             auto_reset = TRUE
@@ -231,28 +238,28 @@ ui_elements <- list(
           shiny::helpText("If you change the parameters, press 'Analyse' again to update the tables"),
           # shiny::conditionalPanel(
           #   condition = "output.ready=='yes'",
-            shiny::tags$hr(),
-            shiny::h4("Download results"),
-            shiny::helpText("Choose your favourite output file format for further work, and download, when the analyses are done."),
-            shiny::selectInput(
-              inputId = "output_type",
-              label = "Output format",
-              selected = NULL,
-              choices = list(
-                "MS Word" = "docx",
-                "LibreOffice" = "odt"
-                # ,
-                # "PDF" = "pdf",
-                # "All the above" = "all"
-              )
-            ),
-            shiny::br(),
-            # Button
-            shiny::downloadButton(
-              outputId = "report",
-              label = "Download",
-              icon = shiny::icon("download")
-            ),
+          shiny::tags$hr(),
+          shiny::h4("Download results"),
+          shiny::helpText("Choose your favourite output file format for further work, and download, when the analyses are done."),
+          shiny::selectInput(
+            inputId = "output_type",
+            label = "Output format",
+            selected = NULL,
+            choices = list(
+              "MS Word" = "docx",
+              "LibreOffice" = "odt"
+              # ,
+              # "PDF" = "pdf",
+              # "All the above" = "all"
+            )
+          ),
+          shiny::br(),
+          # Button
+          shiny::downloadButton(
+            outputId = "report",
+            label = "Download",
+            icon = shiny::icon("download")
+          ),
           shiny::helpText("If choosing to output to MS Word, please note, that when opening the document, two errors will pop-up. Choose to repair and choose not to update references. The issue is being worked on. You can always choose LibreOffice instead.")
           ## https://github.com/quarto-dev/quarto-cli/issues/7151
           # )
@@ -295,15 +302,29 @@ dark <- custom_theme(
 # Fonts to consider:
 # https://webdesignerdepot.com/17-open-source-fonts-youll-actually-love/
 
-ui <- bslib::page(
+ui <- bslib::page_fluid(
   title = "freesearcheR",
   theme = light,
   shiny::useBusyIndicators(),
   bslib::page_navbar(
     id = "main_panel",
+    # header = shiny::tags$header(shiny::p("Data is only stored temporarily for analysis and deleted immediately afterwards.")),
     ui_elements$import,
     ui_elements$overview,
     ui_elements$analyze,
-    ui_elements$docs
+    ui_elements$docs,
+    # bslib::nav_spacer(),
+    # bslib::nav_item(shinyWidgets::materialSwitch(inputId = "mode", label = icon("moon"), right=TRUE,status = "success")),
+    fillable = TRUE,
+    footer = shiny::tags$footer(
+      style = "background-color: #14131326; padding: 4px; text-align: center; bottom: 0; width: 100%;",
+      shiny::p(
+        style = "margin: 1",
+        "Data is only stored for analyses and deleted immediately afterwards."),
+      shiny::p(
+        style = "margin: 1; color: #888;",
+        "Andreas G Damsbo | AGPLv3 license | ", shiny::tags$a("Source on Github", href = "https://github.com/agdamsbo/webResearch/")
+      ),
+    )
   )
 )

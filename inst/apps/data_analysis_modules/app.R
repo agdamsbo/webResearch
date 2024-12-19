@@ -158,6 +158,7 @@ cut.hms <- function(x, breaks, ...) {
 
 
 
+
 cut.POSIXt <- function(x, breaks, right = FALSE, include.lowest = TRUE, start.on.monday=TRUE, ...) {
   breaks_o <- breaks
   # browser()
@@ -178,6 +179,10 @@ cut.POSIXt <- function(x, breaks, right = FALSE, include.lowest = TRUE, start.on
       days <- days[c(7,1:6)]
     }
     out <- factor(weekdays(x),levels=days) |> forcats::fct_drop()
+  } else if (identical(breaks,"month_only")){
+    ms <- paste0("1970-",1:12,"-01") |> as.Date() |> months()
+
+    out <- factor(months(x),levels=ms) |> forcats::fct_drop()
   } else {
   ## Doesn't really work very well for breaks other than the special character cases as right border is excluded
   out <- base::cut.POSIXt(x, breaks=breaks,right=right,...) |> forcats::fct_drop()
@@ -186,7 +191,7 @@ cut.POSIXt <- function(x, breaks, right = FALSE, include.lowest = TRUE, start.on
   l <- levels(out)
   if (is.numeric(breaks_o)) {
     l <- breaks
-  } else if (is.character(breaks) && length(breaks) == 1 && !identical(breaks,"weekday")) {
+  } else if (is.character(breaks) && length(breaks) == 1 && !(identical(breaks,"weekday") | identical(breaks,"month_only"))) {
     if (include.lowest) {
       if (right) {
         l <- c(l, min(as.character(x)))
@@ -220,6 +225,10 @@ cut.Date <- function(x,breaks,start.on.monday=TRUE,...){
       days <- days[c(7,1:6)]
     }
     out <- factor(weekdays(x),levels=days) |> forcats::fct_drop()
+  } else if (identical(breaks,"month_only")){
+    ms <- paste0("1970-",1:12,"-01") |> as.Date() |> months()
+
+    out <- factor(months(x),levels=ms) |> forcats::fct_drop()
   } else {
     ## Doesn't really work very well for breaks other than the special character cases as right border is excluded
     out <- base::cut.Date(x, breaks=breaks,...) |> forcats::fct_drop()
@@ -421,6 +430,7 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
             "weekday",
             "week",
             "month",
+            "month_only",
             "quarter",
             "year"
           )
@@ -447,7 +457,7 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
           inputId = session$ns("method"),
           label = i18n("Method:"),
           choices = choices,
-          selected = "quantile",
+          selected = NULL,
           width = "100%"
         )
       })
@@ -490,6 +500,7 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
           "weekday",
           "week",
           "month",
+          "month_only",
           "quarter",
           "year"
         )) {
@@ -523,7 +534,7 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
         variable <- req(input$variable)
         data[[paste0(variable, "_cut")]] <- cut(
           x = data[[variable]],
-          breaks = if (input$method %in% c("day", "weekday", "week", "month", "quarter", "year", "hour")) input$method else breaks_r()$brks,
+          breaks = if (input$method %in% c("day", "weekday", "week", "month", "month_only", "quarter", "year", "hour")) input$method else breaks_r()$brks,
           include.lowest = input$include_lowest,
           right = input$right
         )
@@ -661,6 +672,137 @@ plot_histogram <- function(data, column, bins = 30, breaks = NULL, color = "#112
   abline(v = breaks, col = "#FFFFFF", lty = 1, lwd = 1.5)
   abline(v = breaks, col = "#2E2E2E", lty = 2, lwd = 1.5)
 }
+
+
+########
+#### Current file: R//file-import-module.R 
+########
+
+
+
+
+
+
+
+
+m_datafileUI <- function(id) {
+  ns <- shiny::NS(id)
+  shiny::tagList(
+    shiny::fileInput(
+      inputId = ns("file"),
+      label = "Upload a file",
+      multiple = FALSE,
+      accept = c(
+        ".csv",
+        ".xlsx",
+        ".xls",
+        ".dta",
+        ".ods",
+        ".rds"
+      )
+    ),
+    shiny::h4("Parameter specifications"),
+    shiny::helpText(shiny::em("Select the desired variables and press 'Submit'")),
+    shiny::uiOutput(ns("include_vars")),
+    DT::DTOutput(ns("data_input")),
+    shiny::actionButton(ns("submit"), "Submit")
+  )
+}
+
+m_datafileServer <- function(id, output.format = "df") {
+  shiny::moduleServer(id, function(input, output, session, ...) {
+    ns <- shiny::NS(id)
+    ds <- shiny::reactive({
+      REDCapCAST::read_input(input$file$datapath) |> REDCapCAST::parse_data()
+    })
+
+    output$include_vars <- shiny::renderUI({
+      shiny::req(input$file)
+      shiny::selectizeInput(
+        inputId = ns("include_vars"),
+        selected = NULL,
+        label = "Covariables to include",
+        choices = colnames(ds()),
+        multiple = TRUE
+      )
+    })
+
+    base_vars <- shiny::reactive({
+      if (is.null(input$include_vars)) {
+        out <- colnames(ds())
+      } else {
+        out <- input$include_vars
+      }
+      out
+    })
+
+    output$data_input <-
+      DT::renderDT({
+        shiny::req(input$file)
+        ds()[base_vars()]
+      })
+
+    shiny::eventReactive(input$submit, {
+      # shiny::req(input$file)
+
+      data <- shiny::isolate({
+        ds()[base_vars()]
+      })
+
+      file_export(data,
+        output.format = output.format,
+        tools::file_path_sans_ext(input$file$name)
+      )
+    })
+  })
+}
+
+
+
+
+
+file_app <- function() {
+  ui <- shiny::fluidPage(
+    m_datafileUI("data"),
+    # DT::DTOutput(outputId = "redcap_prev")
+    toastui::datagridOutput2(outputId = "redcap_prev")
+  )
+  server <- function(input, output, session) {
+    m_datafileServer("data", output.format = "list")
+  }
+  shiny::shinyApp(ui, server)
+}
+
+file_app()
+
+tdm_data_upload <- teal::teal_data_module(
+  ui <- function(id) {
+    shiny::fluidPage(
+      m_datafileUI(id)
+    )
+  },
+  server = function(id) {
+    m_datafileServer(id, output.format = "teal")
+  }
+)
+
+tdm_data_read <- teal::teal_data_module(
+  ui <- function(id) {
+    shiny::fluidPage(
+      m_redcap_readUI(id = "redcap")
+    )
+  },
+  server = function(id) {
+    moduleServer(
+      id,
+      function(input, output, session) {
+        ns <- session$ns
+
+        m_redcap_readServer(id = "redcap", output.format = "teal")
+      }
+    )
+  }
+)
 
 
 ########
@@ -835,9 +977,6 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
 }
 
 
-########
-#### Current file: R//modules.R 
-########
 
 
 
@@ -846,78 +985,19 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
 
 
 
-m_datafileUI <- function(id) {
-  ns <- shiny::NS(id)
-  shiny::tagList(
-    shiny::fileInput(
-      inputId = ns("file"),
-      label = "Upload a file",
-      multiple = FALSE,
-      accept = c(
-        ".csv",
-        ".xlsx",
-        ".xls",
-        ".dta",
-        ".ods",
-        ".rds"
-      )
-    ),
-    shiny::h4("Parameter specifications"),
-    shiny::helpText(shiny::em("Select the desired variables and press 'Submit'")),
-    shiny::uiOutput(ns("include_vars")),
-    DT::DTOutput(ns("data_input")),
-    shiny::actionButton(ns("submit"), "Submit")
-  )
+
+
+default_parsing <- function(data){
+  data |>
+    REDCapCAST::parse_data() |>
+    REDCapCAST::as_factor() |>
+    REDCapCAST::numchar2fct()
 }
 
-m_datafileServer <- function(id, output.format = "df") {
-  shiny::moduleServer(id, function(input, output, session, ...) {
-    ns <- shiny::NS(id)
-    ds <- shiny::reactive({
-      REDCapCAST::read_input(input$file$datapath) |> REDCapCAST::parse_data()
-    })
 
-    output$include_vars <- shiny::renderUI({
-      shiny::req(input$file)
-      shiny::selectizeInput(
-        inputId = ns("include_vars"),
-        selected = NULL,
-        label = "Covariables to include",
-        choices = colnames(ds()),
-        multiple = TRUE
-      )
-    })
-
-    base_vars <- shiny::reactive({
-      if (is.null(input$include_vars)) {
-        out <- colnames(ds())
-      } else {
-        out <- input$include_vars
-      }
-      out
-    })
-
-    output$data_input <-
-      DT::renderDT({
-        shiny::req(input$file)
-        ds()[base_vars()]
-      })
-
-    shiny::eventReactive(input$submit, {
-      # shiny::req(input$file)
-
-      data <- shiny::isolate({
-        ds()[base_vars()]
-      })
-
-      file_export(data,
-        output.format = output.format,
-        tools::file_path_sans_ext(input$file$name)
-      )
-    })
-  })
-}
-
+########
+#### Current file: R//redcap_read_shiny_module.R 
+########
 
 
 
@@ -985,8 +1065,8 @@ m_redcap_readUI <- function(id, include_title = TRUE) {
   shiny::fluidPage(
     if (include_title) shiny::tags$h3("Import data from REDCap"),
     fluidRow(
-    server_ui,
-    params_ui),
+      server_ui,
+      params_ui),
     shiny::column(
       width = 12,
       # shiny::actionButton(inputId = ns("import"), label = "Import"),
@@ -1115,7 +1195,7 @@ m_redcap_readServer <- function(id, output.format = c("df", "teal", "list")) {
         # browser()
         data.df <- dd()[, c(1, 2, 4, 5, 6, 8)]
         DT::datatable(data.df,
-          caption = "Subset of data dictionary"
+                      caption = "Subset of data dictionary"
         )
       },
       server = TRUE
@@ -1162,8 +1242,8 @@ m_redcap_readServer <- function(id, output.format = c("df", "teal", "list")) {
         REDCapCAST::suffix2label()
 
       out_object <- file_export(redcap_data,
-        output.format = output.format,
-        filename = name()
+                                output.format = output.format,
+                                filename = name()
       )
 
       if (output.format == "list") {
@@ -1187,7 +1267,11 @@ m_redcap_readServer <- function(id, output.format = c("df", "teal", "list")) {
   )
 }
 
+
+
+
 tdm_redcap_read <- teal::teal_data_module(
+
   ui <- function(id) {
     shiny::fluidPage(
       m_redcap_readUI(id)
@@ -1198,16 +1282,13 @@ tdm_redcap_read <- teal::teal_data_module(
   }
 )
 
-tdm_data_upload <- teal::teal_data_module(
-  ui <- function(id) {
-    shiny::fluidPage(
-      m_datafileUI(id)
-    )
-  },
-  server = function(id) {
-    m_datafileServer(id, output.format = "teal")
-  }
-)
+
+
+
+
+
+
+
 
 
 redcap_app <- function() {
@@ -1248,8 +1329,8 @@ redcap_app <- function() {
     })
 
     filtered_data <- IDEAFilter::IDEAFilter("data_filter",
-                               data = ds,
-                               verbose = FALSE)
+                                            data = ds,
+                                            verbose = FALSE)
 
     # filtered_data <- shiny::reactive({
     #   IDEAFilter::IDEAFilter("data_filter",
@@ -1282,43 +1363,6 @@ redcap_app <- function() {
   }
   shiny::shinyApp(ui, server)
 }
-
-
-redcap_app()
-
-
-file_app <- function() {
-  ui <- shiny::fluidPage(
-    m_datafileUI("data"),
-    # DT::DTOutput(outputId = "redcap_prev")
-    toastui::datagridOutput2(outputId = "redcap_prev")
-  )
-  server <- function(input, output, session) {
-    m_datafileServer("data", output.format = "list")
-  }
-  shiny::shinyApp(ui, server)
-}
-
-file_app()
-
-
-tdm_data_read <- teal::teal_data_module(
-  ui <- function(id) {
-    shiny::fluidPage(
-      m_redcap_readUI(id = "redcap")
-    )
-  },
-  server = function(id) {
-    moduleServer(
-      id,
-      function(input, output, session) {
-        ns <- session$ns
-
-        m_redcap_readServer(id = "redcap", output.format = "teal")
-      }
-    )
-  }
-)
 
 
 ########
@@ -1809,27 +1853,33 @@ shiny_webResearch <- function(data = NULL, ...) {
 
 
 
-custom_theme <- function(...){
+custom_theme <- function(...,
+                         version = 5,
+                         primary = "#1E4A8F",
+                         secondary = "#FF6F61",
+                         # success = "#1E4A8F",
+                         # info = ,
+                         # warning = ,
+                         # danger = ,
+                         # fg = "#000",
+                         # bg="#fff",
+                         bootswatch = "united",
+                         base_font = bslib::font_google("Montserrat"),
+                         # base_font = bslib::font_google("Alice"),
+                         # heading_font = bslib::font_google("Jost", wght = "800"),
+                         # heading_font = bslib::font_google("Noto Serif"),
+                         # heading_font = bslib::font_google("Alice"),
+                         heading_font = bslib::font_google("Public Sans",wght = "700"),
+                         code_font = bslib::font_google("Open Sans")){
   bslib::bs_theme(
     ...,
-    # preset = "united",
-    version = 5,
-    primary = "#1E4A8F",
-    secondary = "#FF6F61",
-    # success = "#1E4A8F",
-    # info = ,
-    # warning = ,
-    # danger = ,
-    # fg = "#000",
-    # bg="#fff",
-    bootswatch = "united",
-    base_font = bslib::font_google("Montserrat"),
-    # base_font = bslib::font_google("Alice"),
-    # heading_font = bslib::font_google("Jost", wght = "800"),
-    # heading_font = bslib::font_google("Noto Serif"),
-    # heading_font = bslib::font_google("Alice"),
-    heading_font = bslib::font_google("Public Sans",wght = "700"),
-    code_font = bslib::font_google("Open Sans")
+    version = version,
+    primary = primary,
+    secondary = secondary,
+    bootswatch = bootswatch,
+    base_font = base_font,
+    heading_font = heading_font,
+    code_font = code_font
   )
 }
 
@@ -1866,7 +1916,7 @@ ui_elements <- list(
           choices = c(
             "File upload" = "file",
             "REDCap server" = "redcap",
-            "Sample data" = "env"
+            "Local data" = "env"
           ),
           # checkIcon = list(
           #   yes = icon("square-check"),
@@ -1903,7 +1953,14 @@ ui_elements <- list(
       DT::DTOutput(outputId = "redcap_prev")
     ),
     shiny::br(),
-    shiny::actionButton(inputId = "act_start", label = "Start")
+    shiny::actionButton(
+      inputId = "act_start",
+      label = "Start",
+      width = "100%",
+      icon = shiny::icon("play")
+    ),
+    shiny::br(),
+    shiny::br()
   ),
   ##############################################################################
   #########
@@ -1911,7 +1968,7 @@ ui_elements <- list(
   #########
   ##############################################################################
   "overview" =
-  # bslib::nav_panel_hidden(
+    # bslib::nav_panel_hidden(
     bslib::nav_panel(
       # value = "overview",
       title = "Modifications",
@@ -2002,7 +2059,7 @@ ui_elements <- list(
   #########
   ##############################################################################
   "analyze" =
-  # bslib::nav_panel_hidden(
+    # bslib::nav_panel_hidden(
     bslib::nav_panel(
       # value = "analyze",
       title = "Analyses",
@@ -2062,8 +2119,8 @@ ui_elements <- list(
             icon = shiny::icon("pencil", lib = "glyphicon"),
             label_busy = "Working...",
             icon_busy = fontawesome::fa_i("arrows-rotate",
-              class = "fa-spin",
-              "aria-hidden" = "true"
+                                          class = "fa-spin",
+                                          "aria-hidden" = "true"
             ),
             type = "secondary",
             auto_reset = TRUE
@@ -2071,28 +2128,28 @@ ui_elements <- list(
           shiny::helpText("If you change the parameters, press 'Analyse' again to update the tables"),
           # shiny::conditionalPanel(
           #   condition = "output.ready=='yes'",
-            shiny::tags$hr(),
-            shiny::h4("Download results"),
-            shiny::helpText("Choose your favourite output file format for further work, and download, when the analyses are done."),
-            shiny::selectInput(
-              inputId = "output_type",
-              label = "Output format",
-              selected = NULL,
-              choices = list(
-                "MS Word" = "docx",
-                "LibreOffice" = "odt"
-                # ,
-                # "PDF" = "pdf",
-                # "All the above" = "all"
-              )
-            ),
-            shiny::br(),
-            # Button
-            shiny::downloadButton(
-              outputId = "report",
-              label = "Download",
-              icon = shiny::icon("download")
-            ),
+          shiny::tags$hr(),
+          shiny::h4("Download results"),
+          shiny::helpText("Choose your favourite output file format for further work, and download, when the analyses are done."),
+          shiny::selectInput(
+            inputId = "output_type",
+            label = "Output format",
+            selected = NULL,
+            choices = list(
+              "MS Word" = "docx",
+              "LibreOffice" = "odt"
+              # ,
+              # "PDF" = "pdf",
+              # "All the above" = "all"
+            )
+          ),
+          shiny::br(),
+          # Button
+          shiny::downloadButton(
+            outputId = "report",
+            label = "Download",
+            icon = shiny::icon("download")
+          ),
           shiny::helpText("If choosing to output to MS Word, please note, that when opening the document, two errors will pop-up. Choose to repair and choose not to update references. The issue is being worked on. You can always choose LibreOffice instead.")
           ## https://github.com/quarto-dev/quarto-cli/issues/7151
           # )
@@ -2135,16 +2192,30 @@ dark <- custom_theme(
 # Fonts to consider:
 # https://webdesignerdepot.com/17-open-source-fonts-youll-actually-love/
 
-ui <- bslib::page(
+ui <- bslib::page_fluid(
   title = "freesearcheR",
   theme = light,
   shiny::useBusyIndicators(),
   bslib::page_navbar(
     id = "main_panel",
+    # header = shiny::tags$header(shiny::p("Data is only stored temporarily for analysis and deleted immediately afterwards.")),
     ui_elements$import,
     ui_elements$overview,
     ui_elements$analyze,
-    ui_elements$docs
+    ui_elements$docs,
+    # bslib::nav_spacer(),
+    # bslib::nav_item(shinyWidgets::materialSwitch(inputId = "mode", label = icon("moon"), right=TRUE,status = "success")),
+    fillable = TRUE,
+    footer = shiny::tags$footer(
+      style = "background-color: #14131326; padding: 4px; text-align: center; bottom: 0; width: 100%;",
+      shiny::p(
+        style = "margin: 1",
+        "Data is only stored for analyses and deleted immediately afterwards."),
+      shiny::p(
+        style = "margin: 1; color: #888;",
+        "Andreas G Damsbo | AGPLv3 license | ", shiny::tags$a("Source on Github", href = "https://github.com/agdamsbo/webResearch/")
+      ),
+    )
   )
 )
 
@@ -2194,8 +2265,7 @@ library(DT)
 
 # light <- custom_theme()
 #
-# dark <- custom_theme(bg = "#000",
-#                      fg="#fff")
+# dark <- custom_theme(bg = "#000",fg="#fff")
 
 
 
@@ -2204,15 +2274,35 @@ server <- function(input, output, session) {
   ## everything else.
   files.to.keep <- list.files("www/")
 
+  output$docs_file <- renderUI({
+    # shiny::includeHTML("www/docs.html")
+    HTML(readLines("www/docs.html"))
+  })
+
+  ##############################################################################
+  #########
+  #########  Night mode (just very popular, not really needed)
+  #########
+  ##############################################################################
+
   # observeEvent(input$dark_mode,{
   #   session$setCurrentTheme(
   #   if (isTRUE(input$dark_mode)) dark else light
   # )})
 
-  output$docs_file <- renderUI({
-    # shiny::includeHTML("www/docs.html")
-    HTML(readLines("www/docs.html"))
-  })
+  # observe({
+  #   if(input$dark_mode==TRUE)
+  #     session$setCurrentTheme(bs_theme_update(theme = custom_theme(version = 5)))
+  #   if(input$dark_mode==FALSE)
+  #     session$setCurrentTheme(bs_theme_update(theme = custom_theme(version = 5, bg = "#000",fg="#fff")))
+  # })
+
+
+  ##############################################################################
+  #########
+  #########  Setting reactive values
+  #########
+  ##############################################################################
 
   rv <- shiny::reactiveValues(
     list = list(),
@@ -2282,32 +2372,32 @@ server <- function(input, output, session) {
     rv$data_original <- from_env$data()
   })
 
-  ds <- shiny::reactive({
-    # input$file1 will be NULL initially. After the user selects
-    # and uploads a file, head of that data file by default,
-    # or all rows if selected, will be shown.
-    # if (v$input) {
-    #   out <- webResearch_data
-    # } else if (input$source == "file") {
-    #   req(data_file$data())
-    #   out <- data_file$data()
-    # } else if (input$source == "redcap") {
-    #   req(purrr::pluck(data_redcap(), "data")())
-    #   out <- purrr::pluck(data_redcap(), "data")()
-    # }
-
-    req(rv$data_original)
-    rv$data_original <- rv$data_original |>
-      REDCapCAST::parse_data() |>
-      REDCapCAST::as_factor() |>
-      REDCapCAST::numchar2fct()
-
-    rv$ds <- "loaded"
-
-    rv$data <- rv$data_original
-
-    rv$data_original
-  })
+  # ds <-
+  # shiny::reactive({
+  #   # input$file1 will be NULL initially. After the user selects
+  #   # and uploads a file, head of that data file by default,
+  #   # or all rows if selected, will be shown.
+  #   # if (v$input) {
+  #   #   out <- webResearch_data
+  #   # } else if (input$source == "file") {
+  #   #   req(data_file$data())
+  #   #   out <- data_file$data()
+  #   # } else if (input$source == "redcap") {
+  #   #   req(purrr::pluck(data_redcap(), "data")())
+  #   #   out <- purrr::pluck(data_redcap(), "data")()
+  #   # }
+  #
+  #   req(rv$data_original)
+  #
+  #   rv$ds <- "loaded"
+  #
+  #   rv$data <- rv$data_original
+  #
+  #
+  #   # rv$data <- rv$data_original
+  #
+  #   # rv$data_original
+  # })
 
   ##############################################################################
   #########
@@ -2317,8 +2407,8 @@ server <- function(input, output, session) {
 
   #########  Modifications
 
-  shiny::observeEvent(rv$data_original, rv$data <- rv$data_original)
-  shiny::observeEvent(input$data_reset, rv$data <- rv$data_original)
+  shiny::observeEvent(rv$data_original, rv$data <- rv$data_original |> default_parsing())
+  shiny::observeEvent(input$data_reset, rv$data <- rv$data_original |> default_parsing())
 
   ## Using modified version of the datamods::cut_variable_server function
   ## Further modifications are needed to have cut/bin options based on class of variable
@@ -2635,7 +2725,7 @@ server <- function(input, output, session) {
           showNotification(paste0(warn), type = "warning")
         },
         error = function(err) {
-          showNotification(paste0("There was the following error. Inspect your data and adjust settings. Error: ",err), type = "err")
+          showNotification(paste0("There was the following error. Inspect your data and adjust settings. Error: ", err), type = "err")
         }
       )
       rv$ready <- "ready"

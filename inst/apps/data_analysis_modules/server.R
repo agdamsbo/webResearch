@@ -39,8 +39,7 @@ library(DT)
 
 # light <- custom_theme()
 #
-# dark <- custom_theme(bg = "#000",
-#                      fg="#fff")
+# dark <- custom_theme(bg = "#000",fg="#fff")
 
 
 
@@ -49,15 +48,35 @@ server <- function(input, output, session) {
   ## everything else.
   files.to.keep <- list.files("www/")
 
+  output$docs_file <- renderUI({
+    # shiny::includeHTML("www/docs.html")
+    HTML(readLines("www/docs.html"))
+  })
+
+  ##############################################################################
+  #########
+  #########  Night mode (just very popular, not really needed)
+  #########
+  ##############################################################################
+
   # observeEvent(input$dark_mode,{
   #   session$setCurrentTheme(
   #   if (isTRUE(input$dark_mode)) dark else light
   # )})
 
-  output$docs_file <- renderUI({
-    # shiny::includeHTML("www/docs.html")
-    HTML(readLines("www/docs.html"))
-  })
+  # observe({
+  #   if(input$dark_mode==TRUE)
+  #     session$setCurrentTheme(bs_theme_update(theme = custom_theme(version = 5)))
+  #   if(input$dark_mode==FALSE)
+  #     session$setCurrentTheme(bs_theme_update(theme = custom_theme(version = 5, bg = "#000",fg="#fff")))
+  # })
+
+
+  ##############################################################################
+  #########
+  #########  Setting reactive values
+  #########
+  ##############################################################################
 
   rv <- shiny::reactiveValues(
     list = list(),
@@ -127,32 +146,32 @@ server <- function(input, output, session) {
     rv$data_original <- from_env$data()
   })
 
-  ds <- shiny::reactive({
-    # input$file1 will be NULL initially. After the user selects
-    # and uploads a file, head of that data file by default,
-    # or all rows if selected, will be shown.
-    # if (v$input) {
-    #   out <- webResearch_data
-    # } else if (input$source == "file") {
-    #   req(data_file$data())
-    #   out <- data_file$data()
-    # } else if (input$source == "redcap") {
-    #   req(purrr::pluck(data_redcap(), "data")())
-    #   out <- purrr::pluck(data_redcap(), "data")()
-    # }
-
-    req(rv$data_original)
-    rv$data_original <- rv$data_original |>
-      REDCapCAST::parse_data() |>
-      REDCapCAST::as_factor() |>
-      REDCapCAST::numchar2fct()
-
-    rv$ds <- "loaded"
-
-    rv$data <- rv$data_original
-
-    rv$data_original
-  })
+  # ds <-
+  # shiny::reactive({
+  #   # input$file1 will be NULL initially. After the user selects
+  #   # and uploads a file, head of that data file by default,
+  #   # or all rows if selected, will be shown.
+  #   # if (v$input) {
+  #   #   out <- webResearch_data
+  #   # } else if (input$source == "file") {
+  #   #   req(data_file$data())
+  #   #   out <- data_file$data()
+  #   # } else if (input$source == "redcap") {
+  #   #   req(purrr::pluck(data_redcap(), "data")())
+  #   #   out <- purrr::pluck(data_redcap(), "data")()
+  #   # }
+  #
+  #   req(rv$data_original)
+  #
+  #   rv$ds <- "loaded"
+  #
+  #   rv$data <- rv$data_original
+  #
+  #
+  #   # rv$data <- rv$data_original
+  #
+  #   # rv$data_original
+  # })
 
   ##############################################################################
   #########
@@ -162,8 +181,8 @@ server <- function(input, output, session) {
 
   #########  Modifications
 
-  shiny::observeEvent(rv$data_original, rv$data <- rv$data_original)
-  shiny::observeEvent(input$data_reset, rv$data <- rv$data_original)
+  shiny::observeEvent(rv$data_original, rv$data <- rv$data_original |> default_parsing())
+  shiny::observeEvent(input$data_reset, rv$data <- rv$data_original |> default_parsing())
 
   ## Using modified version of the datamods::cut_variable_server function
   ## Further modifications are needed to have cut/bin options based on class of variable
@@ -480,7 +499,7 @@ server <- function(input, output, session) {
           showNotification(paste0(warn), type = "warning")
         },
         error = function(err) {
-          showNotification(paste0("There was the following error. Inspect your data and adjust settings. Error: ",err), type = "err")
+          showNotification(paste0("There was the following error. Inspect your data and adjust settings. Error: ", err), type = "err")
         }
       )
       rv$ready <- "ready"
