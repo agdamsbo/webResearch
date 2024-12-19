@@ -45,13 +45,18 @@ Imports:
     lubridate,
     bsicons,
     thematic,
-    reshape2
+    reshape2,
+    shinyWidgets,
+    classInt,
+    htmltools,
+    rlang
 Suggests: 
     styler,
     devtools,
     rhub,
     usethis,
     roxygen2,
-    pak
+    pak,
+    rsconnect
 URL: https://github.com/agdamsbo/freesearcheR
 BugReports: https://github.com/agdamsbo/freesearcheR/issues

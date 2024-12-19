@@ -1,13 +1,13 @@
 
 
 ########
-#### Current file: /Users/au301842/freesearcheR/inst/apps/data_analysis_modules/functions.R 
+#### Current file: /Users/au301842/freesearcheR/inst/apps/data_analysis_modules/functions.R
 ########
 
 
 
 ########
-#### Current file: R//baseline_table.R 
+#### Current file: R//baseline_table.R
 ########
 
 
@@ -35,7 +35,7 @@ baseline_table <- function(data, fun.args = NULL, fun = gtsummary::tbl_summary, 
 
 
 ########
-#### Current file: R//cut-variable-dates.R 
+#### Current file: R//cut-variable-dates.R
 ########
 
 library(datamods)
@@ -677,7 +677,7 @@ plot_histogram <- function(data, column, bins = 30, breaks = NULL, color = "#112
 
 
 ########
-#### Current file: R//file-import-module.R 
+#### Current file: R//file-import-module.R
 ########
 
 
@@ -808,7 +808,7 @@ plot_histogram <- function(data, column, bins = 30, breaks = NULL, color = "#112
 
 
 ########
-#### Current file: R//helpers.R 
+#### Current file: R//helpers.R
 ########
 
 
@@ -912,14 +912,13 @@ argsstring2list <- function(string) {
 
 
 
-
 factorize <- function(data, vars) {
   if (!is.null(vars)) {
     data |>
       dplyr::mutate(
         dplyr::across(
           dplyr::all_of(vars),
-          as_factor
+          REDCapCAST::as_factor
         )
       )
   } else {
@@ -952,8 +951,6 @@ dummy_Imports <- function() {
 
 
 
-
-
 file_export <- function(data, output.format = c("df", "teal", "list"), filename, ...) {
   output.format <- match.arg(output.format)
 
@@ -965,9 +962,7 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
       {
         assign(name, value |>
           dplyr::bind_cols() |>
-          parse_data() |>
-          as_factor() |>
-          numchar2fct())
+          default_parsing())
       },
       value = data,
       name = filename
@@ -975,17 +970,15 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
 
     datanames(out) <- filename
   } else if (output.format == "df") {
-    out <- data|>
-      parse_data() |>
-      as_factor() |>
-      numchar2fct()
+    out <- data |>
+      default_parsing()
   } else if (output.format == "list") {
     out <- list(
       data = data,
       name = filename
     )
 
-    out <- c(out,...)
+    out <- c(out, ...)
   }
 
   out
@@ -1003,16 +996,17 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
 
 
 
-default_parsing <- function(data){
+
+default_parsing <- function(data) {
   data |>
-    parse_data() |>
-    as_factor() |>
-    numchar2fct()
+    REDCapCAST::parse_data() |>
+    REDCapCAST::as_factor() |>
+    REDCapCAST::numchar2fct()
 }
 
 
 ########
-#### Current file: R//redcap_read_shiny_module.R 
+#### Current file: R//redcap_read_shiny_module.R
 ########
 
 
@@ -1111,7 +1105,6 @@ m_redcap_readUI <- function(id, include_title = TRUE) {
     # DT::DTOutput(outputId = ns("data_prev"))
   )
 }
-
 
 
 
@@ -1244,7 +1237,7 @@ m_redcap_readServer <- function(id, output.format = c("df", "teal", "list")) {
       shiny::req(input$fields)
       record_id <- dd()[[1]][1]
 
-      redcap_data <- read_redcap_tables(
+      redcap_data <- REDCapCAST::read_redcap_tables(
         uri = input$uri,
         token = input$api,
         fields = unique(c(record_id, input$fields)),
@@ -1253,10 +1246,10 @@ m_redcap_readServer <- function(id, output.format = c("df", "teal", "list")) {
         raw_or_label = "both",
         filter_logic = input$filter
       ) |>
-        redcap_wider() |>
+        REDCapCAST::redcap_wider() |>
         dplyr::select(-dplyr::ends_with("_complete")) |>
         dplyr::select(-dplyr::any_of(record_id)) |>
-        suffix2label()
+        REDCapCAST::suffix2label()
 
       out_object <- file_export(redcap_data,
                                 output.format = output.format,
@@ -1383,9 +1376,8 @@ redcap_app <- function() {
 
 
 ########
-#### Current file: R//regression_model.R 
+#### Current file: R//regression_model.R
 ########
-
 
 
 
@@ -1455,7 +1447,7 @@ regression_model <- function(data,
   data <- data |>
     purrr::map(\(.x){
       if (is.character(.x)) {
-        suppressWarnings(as_factor(.x))
+        suppressWarnings(REDCapCAST::as_factor(.x))
       } else {
         .x
       }
@@ -1594,7 +1586,7 @@ regression_model_uv <- function(data,
 
 
 ########
-#### Current file: R//regression_table.R 
+#### Current file: R//regression_table.R
 ########
 
 
@@ -1742,7 +1734,7 @@ tbl_merge <- function(data) {
 
 
 ########
-#### Current file: R//report.R 
+#### Current file: R//report.R
 ########
 
 
@@ -1829,7 +1821,7 @@ modify_qmd <- function(file, format) {
 
 
 ########
-#### Current file: R//shiny_freesearcheR.R 
+#### Current file: R//shiny_freesearcheR.R
 ########
 
 
@@ -1860,7 +1852,7 @@ shiny_freesearcheR <- function(...) {
 
 
 ########
-#### Current file: R//theme.R 
+#### Current file: R//theme.R
 ########
 
 
@@ -1901,7 +1893,7 @@ custom_theme <- function(...,
 
 
 ########
-#### Current file: /Users/au301842/freesearcheR/inst/apps/data_analysis_modules/ui.R 
+#### Current file: /Users/au301842/freesearcheR/inst/apps/data_analysis_modules/ui.R
 ########
 
 # ns <- NS(id)
@@ -2213,7 +2205,7 @@ ui <- bslib::page_fluid(
   title = "freesearcheR",
   theme = light,
   shiny::useBusyIndicators(),
-  bslib::page_navbar(
+  bslib::page_navbar(title = "freesearcheR",
     id = "main_panel",
     # header = shiny::tags$header(shiny::p("Data is only stored temporarily for analysis and deleted immediately afterwards.")),
     ui_elements$import,
@@ -2221,7 +2213,7 @@ ui <- bslib::page_fluid(
     ui_elements$analyze,
     ui_elements$docs,
     # bslib::nav_spacer(),
-    # bslib::nav_item(shinyWidgets::materialSwitch(inputId = "mode", label = icon("moon"), right=TRUE,status = "success")),
+    # bslib::nav_item(shinyWidgets::circleButton(inputId = "mode", icon = icon("moon"),status = "primary")),
     fillable = TRUE,
     footer = shiny::tags$footer(
       style = "background-color: #14131326; padding: 4px; text-align: center; bottom: 0; width: 100%;",
@@ -2238,7 +2230,7 @@ ui <- bslib::page_fluid(
 
 
 ########
-#### Current file: /Users/au301842/freesearcheR/inst/apps/data_analysis_modules/server.R 
+#### Current file: /Users/au301842/freesearcheR/inst/apps/data_analysis_modules/server.R
 ########
 
 library(readr)
@@ -2277,17 +2269,6 @@ library(DT)
 # dark <- custom_theme(bg = "#000",fg="#fff")
 
 
-#' freesearcheR server
-#'
-#' @param input input
-#' @param output output
-#' @param session session
-#'
-#' @returns server
-#' @export
-#' @importFrom REDCapCAST fct_drop.data.frame
-#'
-#' @examples
 server <- function(input, output, session) {
   ## Listing files in www in session start to keep when ending and removing
   ## everything else.
@@ -2579,7 +2560,7 @@ server <- function(input, output, session) {
         {
           data <- data_filter() |>
             dplyr::mutate(dplyr::across(dplyr::where(is.character), as.factor)) |>
-            fct_drop.data.frame() |>
+            REDCapCAST::fct_drop.data.frame() |>
             factorize(vars = input$factor_vars)
 
           if (input$strat_var == "none") {
@@ -2799,7 +2780,7 @@ server <- function(input, output, session) {
 
 
 ########
-#### Current file: /Users/au301842/freesearcheR/inst/apps/data_analysis_modules/launch.R 
+#### Current file: /Users/au301842/freesearcheR/inst/apps/data_analysis_modules/launch.R
 ########
 
 shinyApp(ui, server)

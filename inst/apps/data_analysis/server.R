@@ -28,17 +28,6 @@ if (file.exists(here::here("functions.R"))) {
   source(here::here("functions.R"))
 }
 
-#' freesearcheR server
-#'
-#' @param input input
-#' @param output output
-#' @param session session
-#'
-#' @returns server
-#' @export
-#' @importFrom REDCapCAST numchar2fct
-#'
-#' @examples
 server <- function(input, output, session) {
   ## Listing files in www in session start to keep when ending and removing
   ## everything else.
@@ -75,7 +64,7 @@ server <- function(input, output, session) {
       out <- out |>
         (\(.x){
           suppressWarnings(
-            numchar2fct(.x)
+            REDCapCAST::numchar2fct(.x)
           )
         })()
     }

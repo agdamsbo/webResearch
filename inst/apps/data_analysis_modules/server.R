@@ -34,17 +34,6 @@ library(DT)
 # dark <- custom_theme(bg = "#000",fg="#fff")
 
 
-#' freesearcheR server
-#'
-#' @param input input
-#' @param output output
-#' @param session session
-#'
-#' @returns server
-#' @export
-#' @importFrom REDCapCAST fct_drop.data.frame
-#'
-#' @examples
 server <- function(input, output, session) {
   ## Listing files in www in session start to keep when ending and removing
   ## everything else.
@@ -336,7 +325,7 @@ server <- function(input, output, session) {
         {
           data <- data_filter() |>
             dplyr::mutate(dplyr::across(dplyr::where(is.character), as.factor)) |>
-            fct_drop.data.frame() |>
+            REDCapCAST::fct_drop.data.frame() |>
             factorize(vars = input$factor_vars)
 
           if (input$strat_var == "none") {

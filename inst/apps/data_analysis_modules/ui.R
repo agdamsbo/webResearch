@@ -307,7 +307,7 @@ ui <- bslib::page_fluid(
   title = "freesearcheR",
   theme = light,
   shiny::useBusyIndicators(),
-  bslib::page_navbar(
+  bslib::page_navbar(title = "freesearcheR",
     id = "main_panel",
     # header = shiny::tags$header(shiny::p("Data is only stored temporarily for analysis and deleted immediately afterwards.")),
     ui_elements$import,
@@ -315,7 +315,7 @@ ui <- bslib::page_fluid(
     ui_elements$analyze,
     ui_elements$docs,
     # bslib::nav_spacer(),
-    # bslib::nav_item(shinyWidgets::materialSwitch(inputId = "mode", label = icon("moon"), right=TRUE,status = "success")),
+    # bslib::nav_item(shinyWidgets::circleButton(inputId = "mode", icon = icon("moon"),status = "primary")),
     fillable = TRUE,
     footer = shiny::tags$footer(
       style = "background-color: #14131326; padding: 4px; text-align: center; bottom: 0; width: 100%;",

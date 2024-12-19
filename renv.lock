@@ -193,13 +193,9 @@
     },
     "REDCapCAST": {
       "Package": "REDCapCAST",
-      "Version": "24.11.3",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "REDCapCAST",
-      "RemoteUsername": "agdamsbo",
-      "RemoteSha": "45315080c596d3c1ea5f2e815ef27d2a50230326",
+      "Version": "24.12.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
       "Requirements": [
         "R",
         "REDCapR",
@@ -209,6 +205,7 @@
         "forcats",
         "glue",
         "gt",
+        "gtsummary",
         "haven",
         "here",
         "keyring",
@@ -223,7 +220,7 @@
         "vctrs",
         "zip"
       ],
-      "Hash": "9a9744292f30f1fb7fad55c2dd2e9baf"
+      "Hash": "d0925e579ddfbedeb536c5cbf65fc42f"
     },
     "REDCapR": {
       "Package": "REDCapR",
@@ -555,9 +552,9 @@
     },
     "cardx": {
       "Package": "cardx",
-      "Version": "0.2.1",
+      "Version": "0.2.2",
       "Source": "Repository",
-      "Repository": "RSPM",
+      "Repository": "CRAN",
       "Requirements": [
         "R",
         "cards",
@@ -568,7 +565,7 @@
         "rlang",
         "tidyr"
       ],
-      "Hash": "e5458dd65b0602136b16aed802d3bd50"
+      "Hash": "21f5ce5381d529b08783dca434af3003"
     },
     "cellranger": {
       "Package": "cellranger",
@@ -1593,7 +1590,7 @@
     },
     "lubridate": {
       "Package": "lubridate",
-      "Version": "1.9.3",
+      "Version": "1.9.4",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1602,7 +1599,7 @@
         "methods",
         "timechange"
       ],
-      "Hash": "680ad542fbcf801442c83a6ac5a2126c"
+      "Hash": "be38bc740fc51783a78edb5a157e4104"
     },
     "magrittr": {
       "Package": "magrittr",
@@ -1790,7 +1787,7 @@
     },
     "openxlsx2": {
       "Package": "openxlsx2",
-      "Version": "1.11",
+      "Version": "1.12",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1803,7 +1800,7 @@
         "utils",
         "zip"
       ],
-      "Hash": "c519244e5080a630292e1fdc36717f0d"
+      "Hash": "be241f0f1a58220243d69141407a97ac"
     },
     "parameters": {
       "Package": "parameters",
@@ -2547,10 +2544,10 @@
     },
     "sodium": {
       "Package": "sodium",
-      "Version": "1.3.2",
+      "Version": "1.4.0",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "869b09ca565ecaa9efc62534ebfa3efd"
+      "Hash": "ae00d33a499e429a04409bc1167c4995"
     },
     "sourcetools": {
       "Package": "sourcetools",

@@ -7,7 +7,7 @@
 default_parsing(data)
 }
 \arguments{
-\item{data}{}
+\item{data}{data}
 }
 \value{
 data.frame or tibble
@@ -17,5 +17,7 @@ Default data parsing
 }
 \examples{
 mtcars |> str()
-mtcars |> default_parsing() |> str()
+mtcars |>
+  default_parsing() |>
+  str()
 }

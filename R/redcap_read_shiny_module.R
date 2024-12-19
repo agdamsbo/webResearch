@@ -100,7 +100,6 @@ m_redcap_readUI <- function(id, include_title = TRUE) {
 #'
 #' @return shiny server module
 #' @export
-#' @importFrom REDCapCAST read_redcap_tables redcap_wider suffix2label
 #'
 m_redcap_readServer <- function(id, output.format = c("df", "teal", "list")) {
   output.format <- match.arg(output.format)
@@ -227,7 +226,7 @@ m_redcap_readServer <- function(id, output.format = c("df", "teal", "list")) {
       shiny::req(input$fields)
       record_id <- dd()[[1]][1]
 
-      redcap_data <- read_redcap_tables(
+      redcap_data <- REDCapCAST::read_redcap_tables(
         uri = input$uri,
         token = input$api,
         fields = unique(c(record_id, input$fields)),
@@ -236,10 +235,10 @@ m_redcap_readServer <- function(id, output.format = c("df", "teal", "list")) {
         raw_or_label = "both",
         filter_logic = input$filter
       ) |>
-        redcap_wider() |>
+        REDCapCAST::redcap_wider() |>
         dplyr::select(-dplyr::ends_with("_complete")) |>
         dplyr::select(-dplyr::any_of(record_id)) |>
-        suffix2label()
+        REDCapCAST::suffix2label()
 
       out_object <- file_export(redcap_data,
                                 output.format = output.format,
