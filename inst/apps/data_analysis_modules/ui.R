@@ -69,6 +69,7 @@ ui_elements <- list(
       width = "100%",
       icon = shiny::icon("play")
     ),
+    shiny::helpText('After importing, hit "Start" or navigate to the desired tab.'),
     shiny::br(),
     shiny::br()
   ),
@@ -323,7 +324,7 @@ ui <- bslib::page_fluid(
         "Data is only stored for analyses and deleted immediately afterwards."),
       shiny::p(
         style = "margin: 1; color: #888;",
-        "Andreas G Damsbo | AGPLv3 license | ", shiny::tags$a("Source on Github", href = "https://github.com/agdamsbo/webResearch/")
+        "Andreas G Damsbo | AGPLv3 license | ", shiny::tags$a("Source on Github", href = "https://github.com/agdamsbo/webResearch/", target="_blank", rel="noopener noreferrer")
       ),
     )
   )

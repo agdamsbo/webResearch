@@ -6,7 +6,7 @@ By intention, this tool has been designed to be simple to use with a minimum of 
 
 There are four simple steps to go through:
 
-1.  Import data (a spreadsheet/file on your machine, direct export from a REDCap server, or a local file provided with a package)
+1.  Import data (a spreadsheet/file on your machine, direct export from a REDCap server, or a local file provided with a package).
 
 2.  An *optional* step of data modification (change variable classes and creating categorical variables (factors) from numeric or time data)
 

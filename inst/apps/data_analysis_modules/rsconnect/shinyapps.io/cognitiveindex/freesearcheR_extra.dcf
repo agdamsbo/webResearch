@@ -1,0 +1,10 @@
+name: freesearcheR_extra
+title:
+username: cognitiveindex
+account: cognitiveindex
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 13622743
+bundleId: 9544828
+url: https://cognitiveindex.shinyapps.io/freesearcheR_extra/
+version: 1
