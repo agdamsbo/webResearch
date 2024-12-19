@@ -2,15 +2,9 @@
 % Please edit documentation in R/regression_table.R
 \name{regression_table}
 \alias{regression_table}
-\alias{regression_table.list}
-\alias{regression_table.default}
 \title{Create table of regression model}
 \usage{
 regression_table(x, ...)
-
-\method{regression_table}{list}(x, ...)
-
-\method{regression_table}{default}(x, ..., args.list = NULL, fun = "gtsummary::tbl_regression")
 }
 \arguments{
 \item{x}{regression model}
@@ -80,4 +74,36 @@ list(
   purrr::map(regression_table) |>
   tbl_merge()
   }
+regression_table <- function(x, ...) {
+  UseMethod("regression_table")
+}
+
+#' @rdname regression_table
+#' @export
+regression_table.list <- function(x, ...) {
+  x |>
+    purrr::map(\(.m){
+      regression_table(x = .m, ...) |>
+        gtsummary::add_n()
+    }) |>
+    gtsummary::tbl_stack()
+}
+
+#' @rdname regression_table
+#' @export
+regression_table.default <- function(x, ..., args.list = NULL, fun = "gtsummary::tbl_regression") {
+  # Stripping custom class
+  class(x) <- class(x)[class(x) != "webresearch_model"]
+
+  if (any(c(length(class(x)) != 1, class(x) != "lm"))) {
+    if (!"exponentiate" \%in\% names(args.list)) {
+      args.list <- c(args.list, list(exponentiate = TRUE))
+    }
+  }
+
+  out <- do.call(getfun(fun), c(list(x = x), args.list))
+  out |>
+    gtsummary::add_glance_source_note() # |>
+  # gtsummary::bold_p()
+}
 }
