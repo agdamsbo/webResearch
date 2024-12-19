@@ -10,6 +10,7 @@
 #' @param ... ignored for now
 #'
 #' @importFrom stats as.formula
+#' @importFrom REDCapCAST as_factor
 #'
 #' @return object of standard class for fun
 #' @export
@@ -66,7 +67,7 @@ regression_model <- function(data,
   data <- data |>
     purrr::map(\(.x){
       if (is.character(.x)) {
-        suppressWarnings(REDCapCAST::as_factor(.x))
+        suppressWarnings(as_factor(.x))
       } else {
         .x
       }

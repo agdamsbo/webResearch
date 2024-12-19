@@ -18,7 +18,9 @@ factor
 Test class
 }
 \examples{
+\dontrun{
 vapply(REDCapCAST::redcapcast_data, \(.x){
   is_any_class(.x, c("hms", "Date", "POSIXct", "POSIXt"))
 }, logical(1))
+}
 }

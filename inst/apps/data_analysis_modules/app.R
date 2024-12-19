@@ -1,7 +1,7 @@
 
 
 ########
-#### Current file: /Users/au301842/webResearch/inst/apps/data_analysis_modules/functions.R 
+#### Current file: /Users/au301842/freesearcheR/inst/apps/data_analysis_modules/functions.R 
 ########
 
 
@@ -236,6 +236,8 @@ cut.Date <- function(x,breaks,start.on.monday=TRUE,...){
   }
   out
 }
+
+
 
 
 
@@ -685,124 +687,124 @@ plot_histogram <- function(data, column, bins = 30, breaks = NULL, color = "#112
 
 
 
-m_datafileUI <- function(id) {
-  ns <- shiny::NS(id)
-  shiny::tagList(
-    shiny::fileInput(
-      inputId = ns("file"),
-      label = "Upload a file",
-      multiple = FALSE,
-      accept = c(
-        ".csv",
-        ".xlsx",
-        ".xls",
-        ".dta",
-        ".ods",
-        ".rds"
-      )
-    ),
-    shiny::h4("Parameter specifications"),
-    shiny::helpText(shiny::em("Select the desired variables and press 'Submit'")),
-    shiny::uiOutput(ns("include_vars")),
-    DT::DTOutput(ns("data_input")),
-    shiny::actionButton(ns("submit"), "Submit")
-  )
-}
-
-m_datafileServer <- function(id, output.format = "df") {
-  shiny::moduleServer(id, function(input, output, session, ...) {
-    ns <- shiny::NS(id)
-    ds <- shiny::reactive({
-      REDCapCAST::read_input(input$file$datapath) |> REDCapCAST::parse_data()
-    })
-
-    output$include_vars <- shiny::renderUI({
-      shiny::req(input$file)
-      shiny::selectizeInput(
-        inputId = ns("include_vars"),
-        selected = NULL,
-        label = "Covariables to include",
-        choices = colnames(ds()),
-        multiple = TRUE
-      )
-    })
-
-    base_vars <- shiny::reactive({
-      if (is.null(input$include_vars)) {
-        out <- colnames(ds())
-      } else {
-        out <- input$include_vars
-      }
-      out
-    })
-
-    output$data_input <-
-      DT::renderDT({
-        shiny::req(input$file)
-        ds()[base_vars()]
-      })
-
-    shiny::eventReactive(input$submit, {
-      # shiny::req(input$file)
-
-      data <- shiny::isolate({
-        ds()[base_vars()]
-      })
-
-      file_export(data,
-        output.format = output.format,
-        tools::file_path_sans_ext(input$file$name)
-      )
-    })
-  })
-}
 
 
 
 
 
-file_app <- function() {
-  ui <- shiny::fluidPage(
-    m_datafileUI("data"),
-    # DT::DTOutput(outputId = "redcap_prev")
-    toastui::datagridOutput2(outputId = "redcap_prev")
-  )
-  server <- function(input, output, session) {
-    m_datafileServer("data", output.format = "list")
-  }
-  shiny::shinyApp(ui, server)
-}
 
-file_app()
 
-tdm_data_upload <- teal::teal_data_module(
-  ui <- function(id) {
-    shiny::fluidPage(
-      m_datafileUI(id)
-    )
-  },
-  server = function(id) {
-    m_datafileServer(id, output.format = "teal")
-  }
-)
 
-tdm_data_read <- teal::teal_data_module(
-  ui <- function(id) {
-    shiny::fluidPage(
-      m_redcap_readUI(id = "redcap")
-    )
-  },
-  server = function(id) {
-    moduleServer(
-      id,
-      function(input, output, session) {
-        ns <- session$ns
 
-        m_redcap_readServer(id = "redcap", output.format = "teal")
-      }
-    )
-  }
-)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ########
@@ -910,13 +912,14 @@ argsstring2list <- function(string) {
 
 
 
+
 factorize <- function(data, vars) {
   if (!is.null(vars)) {
     data |>
       dplyr::mutate(
         dplyr::across(
           dplyr::all_of(vars),
-          REDCapCAST::as_factor
+          as_factor
         )
       )
   } else {
@@ -939,6 +942,18 @@ dummy_Imports <- function() {
 }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 file_export <- function(data, output.format = c("df", "teal", "list"), filename, ...) {
   output.format <- match.arg(output.format)
 
@@ -950,9 +965,9 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
       {
         assign(name, value |>
           dplyr::bind_cols() |>
-          REDCapCAST::parse_data() |>
-          REDCapCAST::as_factor() |>
-          REDCapCAST::numchar2fct())
+          parse_data() |>
+          as_factor() |>
+          numchar2fct())
       },
       value = data,
       name = filename
@@ -961,9 +976,9 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
     datanames(out) <- filename
   } else if (output.format == "df") {
     out <- data|>
-      REDCapCAST::parse_data() |>
-      REDCapCAST::as_factor() |>
-      REDCapCAST::numchar2fct()
+      parse_data() |>
+      as_factor() |>
+      numchar2fct()
   } else if (output.format == "list") {
     out <- list(
       data = data,
@@ -987,11 +1002,12 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
 
 
 
+
 default_parsing <- function(data){
   data |>
-    REDCapCAST::parse_data() |>
-    REDCapCAST::as_factor() |>
-    REDCapCAST::numchar2fct()
+    parse_data() |>
+    as_factor() |>
+    numchar2fct()
 }
 
 
@@ -1095,6 +1111,7 @@ m_redcap_readUI <- function(id, include_title = TRUE) {
     # DT::DTOutput(outputId = ns("data_prev"))
   )
 }
+
 
 
 
@@ -1227,7 +1244,7 @@ m_redcap_readServer <- function(id, output.format = c("df", "teal", "list")) {
       shiny::req(input$fields)
       record_id <- dd()[[1]][1]
 
-      redcap_data <- REDCapCAST::read_redcap_tables(
+      redcap_data <- read_redcap_tables(
         uri = input$uri,
         token = input$api,
         fields = unique(c(record_id, input$fields)),
@@ -1236,10 +1253,10 @@ m_redcap_readServer <- function(id, output.format = c("df", "teal", "list")) {
         raw_or_label = "both",
         filter_logic = input$filter
       ) |>
-        REDCapCAST::redcap_wider() |>
+        redcap_wider() |>
         dplyr::select(-dplyr::ends_with("_complete")) |>
         dplyr::select(-dplyr::any_of(record_id)) |>
-        REDCapCAST::suffix2label()
+        suffix2label()
 
       out_object <- file_export(redcap_data,
                                 output.format = output.format,
@@ -1402,6 +1419,7 @@ redcap_app <- function() {
 
 
 
+
 regression_model <- function(data,
                              outcome.str,
                              auto.mode = TRUE,
@@ -1437,7 +1455,7 @@ regression_model <- function(data,
   data <- data |>
     purrr::map(\(.x){
       if (is.character(.x)) {
-        suppressWarnings(REDCapCAST::as_factor(.x))
+        suppressWarnings(as_factor(.x))
       } else {
         .x
       }
@@ -1691,7 +1709,7 @@ regression_table <- function(x, ...) {
 
 regression_table_create <- function(x, ..., args.list = NULL, fun = "gtsummary::tbl_regression") {
   # Stripping custom class
-  class(x) <- class(x)[class(x) != "webresearch_model"]
+  class(x) <- class(x)[class(x) != "freesearcher_model"]
 
   if (any(c(length(class(x)) != 1, class(x) != "lm"))) {
     if (!"exponentiate" %in% names(args.list)) {
@@ -1811,7 +1829,7 @@ modify_qmd <- function(file, format) {
 
 
 ########
-#### Current file: R//shiny_webResearch.R 
+#### Current file: R//shiny_freesearcheR.R 
 ########
 
 
@@ -1827,18 +1845,16 @@ modify_qmd <- function(file, format) {
 
 
 
-shiny_webResearch <- function(data = NULL, ...) {
-  appDir <- system.file("apps", "data_analysis_modules", package = "webResearch")
+
+
+
+shiny_freesearcheR <- function(...) {
+  appDir <- system.file("apps", "data_analysis_modules", package = "freesearcheR")
   if (appDir == "") {
-    stop("Could not find the app directory. Try re-installing `webResearch`.", call. = FALSE)
+    stop("Could not find the app directory. Try re-installing `freesearcheR`.", call. = FALSE)
   }
 
-  G <- .GlobalEnv
-
-  if (!is.null(data) && is.data.frame(data)) {
-    assign("webResearch_data", data, envir = G)
-  }
-  a <- shiny::runApp(appDir = appDir, ...)
+  a <- shiny::runApp(appDir = paste0(appDir,"/app.R"), ...)
   return(invisible(a))
 }
 
@@ -1885,7 +1901,7 @@ custom_theme <- function(...,
 
 
 ########
-#### Current file: /Users/au301842/webResearch/inst/apps/data_analysis_modules/ui.R 
+#### Current file: /Users/au301842/freesearcheR/inst/apps/data_analysis_modules/ui.R 
 ########
 
 # ns <- NS(id)
@@ -2214,7 +2230,7 @@ ui <- bslib::page_fluid(
         "Data is only stored for analyses and deleted immediately afterwards."),
       shiny::p(
         style = "margin: 1; color: #888;",
-        "Andreas G Damsbo | AGPLv3 license | ", shiny::tags$a("Source on Github", href = "https://github.com/agdamsbo/webResearch/", target="_blank", rel="noopener noreferrer")
+        "Andreas G Damsbo | AGPLv3 license | ", shiny::tags$a("Source on Github", href = "https://github.com/agdamsbo/freesearcheR/", target="_blank", rel="noopener noreferrer")
       ),
     )
   )
@@ -2222,13 +2238,8 @@ ui <- bslib::page_fluid(
 
 
 ########
-#### Current file: /Users/au301842/webResearch/inst/apps/data_analysis_modules/server.R 
+#### Current file: /Users/au301842/freesearcheR/inst/apps/data_analysis_modules/server.R 
 ########
-
-# project.aid::merge_scripts(list.files("R/",full.names = TRUE),dest = here::here("app/functions.R"))
-# source(here::here("app/functions.R"))
-
-# source("https://raw.githubusercontent.com/agdamsbo/webResearch/refs/heads/main/app/functions.R")
 
 library(readr)
 library(MASS)
@@ -2246,7 +2257,7 @@ library(quarto)
 library(here)
 library(broom)
 library(broom.helpers)
-library(REDCapCAST)
+# library(REDCapCAST)
 library(easystats)
 library(patchwork)
 library(DHARMa)
@@ -2255,10 +2266,7 @@ library(toastui)
 library(IDEAFilter)
 library(shinyWidgets)
 library(DT)
-# if (!requireNamespace("webResearch")) {
-#   devtools::install_github("agdamsbo/webResearch", quiet = TRUE, upgrade = "never")
-# }
-# library(webResearch)
+# library(freesearcheR)
 
 # source("functions.R")
 
@@ -2269,7 +2277,17 @@ library(DT)
 # dark <- custom_theme(bg = "#000",fg="#fff")
 
 
-
+#' freesearcheR server
+#'
+#' @param input input
+#' @param output output
+#' @param session session
+#'
+#' @returns server
+#' @export
+#' @importFrom REDCapCAST fct_drop.data.frame
+#'
+#' @examples
 server <- function(input, output, session) {
   ## Listing files in www in session start to keep when ending and removing
   ## everything else.
@@ -2308,7 +2326,6 @@ server <- function(input, output, session) {
   rv <- shiny::reactiveValues(
     list = list(),
     ds = NULL,
-    input = exists("webResearch_data"),
     local_temp = NULL,
     ready = NULL,
     test = "no",
@@ -2372,33 +2389,6 @@ server <- function(input, output, session) {
     shiny::req(from_env$data())
     rv$data_original <- from_env$data()
   })
-
-  # ds <-
-  # shiny::reactive({
-  #   # input$file1 will be NULL initially. After the user selects
-  #   # and uploads a file, head of that data file by default,
-  #   # or all rows if selected, will be shown.
-  #   # if (v$input) {
-  #   #   out <- webResearch_data
-  #   # } else if (input$source == "file") {
-  #   #   req(data_file$data())
-  #   #   out <- data_file$data()
-  #   # } else if (input$source == "redcap") {
-  #   #   req(purrr::pluck(data_redcap(), "data")())
-  #   #   out <- purrr::pluck(data_redcap(), "data")()
-  #   # }
-  #
-  #   req(rv$data_original)
-  #
-  #   rv$ds <- "loaded"
-  #
-  #   rv$data <- rv$data_original
-  #
-  #
-  #   # rv$data <- rv$data_original
-  #
-  #   # rv$data_original
-  # })
 
   ##############################################################################
   #########
@@ -2589,7 +2579,7 @@ server <- function(input, output, session) {
         {
           data <- data_filter() |>
             dplyr::mutate(dplyr::across(dplyr::where(is.character), as.factor)) |>
-            REDCapCAST::fct_drop.data.frame() |>
+            fct_drop.data.frame() |>
             factorize(vars = input$factor_vars)
 
           if (input$strat_var == "none") {
@@ -2809,7 +2799,7 @@ server <- function(input, output, session) {
 
 
 ########
-#### Current file: /Users/au301842/webResearch/inst/apps/data_analysis_modules/launch.R 
+#### Current file: /Users/au301842/freesearcheR/inst/apps/data_analysis_modules/launch.R 
 ########
 
 shinyApp(ui, server)

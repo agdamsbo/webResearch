@@ -1,10 +1,10 @@
-Package: webResearch
+Package: freesearcheR
 Title: Browser Based Data Analysis
 Version: 24.12.1
 Authors@R: 
     person("Andreas Gammelgaard", "Damsbo", , "agdamsbo@clin.au.dk", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0002-7559-1154"))
-Description: Browser based basic data analysis and research output.
+Description: Free and open source browser based data exploration and analysis with publication ready output.
 License: AGPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -17,7 +17,6 @@ Imports:
     gtsummary,
     haven,
     here,
-    openxlsx2,
     quarto,
     readODS,
     readr,
@@ -50,6 +49,9 @@ Imports:
 Suggests: 
     styler,
     devtools,
-    rhub
-URL: https://github.com/agdamsbo/webResearch
-BugReports: https://github.com/agdamsbo/webResearch/issues
+    rhub,
+    usethis,
+    roxygen2,
+    pak
+URL: https://github.com/agdamsbo/freesearcheR
+BugReports: https://github.com/agdamsbo/freesearcheR/issues

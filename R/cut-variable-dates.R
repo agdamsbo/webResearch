@@ -206,9 +206,11 @@ cut.Date <- function(x,breaks,start.on.monday=TRUE,...){
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' vapply(REDCapCAST::redcapcast_data, \(.x){
 #'   is_any_class(.x, c("hms", "Date", "POSIXct", "POSIXt"))
 #' }, logical(1))
+#' }
 is_any_class <- function(data, class.vec) {
   any(class(data) %in% class.vec)
 }

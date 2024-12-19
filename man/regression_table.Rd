@@ -93,7 +93,7 @@ regression_table.list <- function(x, ...) {
 #' @export
 regression_table.default <- function(x, ..., args.list = NULL, fun = "gtsummary::tbl_regression") {
   # Stripping custom class
-  class(x) <- class(x)[class(x) != "webresearch_model"]
+  class(x) <- class(x)[class(x) != "freesearcher_model"]
 
   if (any(c(length(class(x)) != 1, class(x) != "lm"))) {
     if (!"exponentiate" \%in\% names(args.list)) {

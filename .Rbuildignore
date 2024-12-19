@@ -1,9 +1,10 @@
 ^renv$
 ^renv\.lock$
-^webResearch\.Rproj$
+^freesearcheR\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^dev$
 ^\.github$
 ^inst/shiny-examples/casting/functions\.R$
 ^functions\.R$
+^CODE_OF_CONDUCT\.md$

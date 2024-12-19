@@ -98,6 +98,7 @@ argsstring2list <- function(string) {
 #' @param vars variables to force factorize
 #'
 #' @return data.frame
+#' @importFrom REDCapCAST as_factor
 #' @export
 factorize <- function(data, vars) {
   if (!is.null(vars)) {
@@ -105,7 +106,7 @@ factorize <- function(data, vars) {
       dplyr::mutate(
         dplyr::across(
           dplyr::all_of(vars),
-          REDCapCAST::as_factor
+          as_factor
         )
       )
   } else {
@@ -128,6 +129,17 @@ dummy_Imports <- function() {
 }
 
 
+#' Title
+#'
+#' @param data data
+#' @param output.format output
+#' @param filename filename
+#' @param ... passed on
+#'
+#' @returns data
+#' @export
+#' @importFrom REDCapCAST as_factor parse_data numchar2fct
+#'
 file_export <- function(data, output.format = c("df", "teal", "list"), filename, ...) {
   output.format <- match.arg(output.format)
 
@@ -139,9 +151,9 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
       {
         assign(name, value |>
           dplyr::bind_cols() |>
-          REDCapCAST::parse_data() |>
-          REDCapCAST::as_factor() |>
-          REDCapCAST::numchar2fct())
+          parse_data() |>
+          as_factor() |>
+          numchar2fct())
       },
       value = data,
       name = filename
@@ -150,9 +162,9 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
     datanames(out) <- filename
   } else if (output.format == "df") {
     out <- data|>
-      REDCapCAST::parse_data() |>
-      REDCapCAST::as_factor() |>
-      REDCapCAST::numchar2fct()
+      parse_data() |>
+      as_factor() |>
+      numchar2fct()
   } else if (output.format == "list") {
     out <- list(
       data = data,
@@ -172,13 +184,14 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
 #'
 #' @returns data.frame or tibble
 #' @export
+#' @importFrom REDCapCAST as_factor parse_data numchar2fct
 #'
 #' @examples
 #' mtcars |> str()
 #' mtcars |> default_parsing() |> str()
 default_parsing <- function(data){
   data |>
-    REDCapCAST::parse_data() |>
-    REDCapCAST::as_factor() |>
-    REDCapCAST::numchar2fct()
+    parse_data() |>
+    as_factor() |>
+    numchar2fct()
 }

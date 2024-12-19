@@ -14,7 +14,7 @@ Below will be a more detailed description of the included features and possibili
 
 ## Contribute
 
-Contributions are very welcome. If you find anything odd, or you think of features to add or remove, please [share and report on the project page on GitHub](https://github.com/agdamsbo/webResearch/issues).
+Contributions are very welcome. If you find anything odd, or you think of features to add or remove, please [share and report on the project page on GitHub](https://github.com/agdamsbo/freesearcheR/issues).
 
 ## Roadmap
 
@@ -40,6 +40,6 @@ Contributions are very welcome. If you find anything odd, or you think of featur
 
 -   [ ] Include reproducible code for all steps
 
--   [ ] Modify factor levels (including naming, order, collapsing, removing)
+-   [x] ~~Modify factor levels~~ Factor level modification is possible through converting factors to numeric > cutting numeric with desired fixed values. 2024-12-12
 
--   [ ] More options for date/datetime/time grouping/factoring
+-   [x] More options for date/datetime/time grouping/factoring. Included weekday and month-only options. 2024-12-12

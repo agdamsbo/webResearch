@@ -324,7 +324,7 @@ ui <- bslib::page_fluid(
         "Data is only stored for analyses and deleted immediately afterwards."),
       shiny::p(
         style = "margin: 1; color: #888;",
-        "Andreas G Damsbo | AGPLv3 license | ", shiny::tags$a("Source on Github", href = "https://github.com/agdamsbo/webResearch/", target="_blank", rel="noopener noreferrer")
+        "Andreas G Damsbo | AGPLv3 license | ", shiny::tags$a("Source on Github", href = "https://github.com/agdamsbo/freesearcheR/", target="_blank", rel="noopener noreferrer")
       ),
     )
   )

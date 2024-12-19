@@ -1,8 +1,3 @@
-# project.aid::merge_scripts(list.files("R/",full.names = TRUE),dest = here::here("app/functions.R"))
-# source(here::here("app/functions.R"))
-
-# source("https://raw.githubusercontent.com/agdamsbo/webResearch/refs/heads/main/app/functions.R")
-
 library(readr)
 library(MASS)
 library(stats)
@@ -19,7 +14,7 @@ library(quarto)
 library(here)
 library(broom)
 library(broom.helpers)
-library(REDCapCAST)
+# library(REDCapCAST)
 library(easystats)
 library(patchwork)
 library(DHARMa)
@@ -28,10 +23,7 @@ library(toastui)
 library(IDEAFilter)
 library(shinyWidgets)
 library(DT)
-# if (!requireNamespace("webResearch")) {
-#   devtools::install_github("agdamsbo/webResearch", quiet = TRUE, upgrade = "never")
-# }
-# library(webResearch)
+# library(freesearcheR)
 
 # source("functions.R")
 
@@ -42,7 +34,17 @@ library(DT)
 # dark <- custom_theme(bg = "#000",fg="#fff")
 
 
-
+#' freesearcheR server
+#'
+#' @param input input
+#' @param output output
+#' @param session session
+#'
+#' @returns server
+#' @export
+#' @importFrom REDCapCAST fct_drop.data.frame
+#'
+#' @examples
 server <- function(input, output, session) {
   ## Listing files in www in session start to keep when ending and removing
   ## everything else.
@@ -81,7 +83,6 @@ server <- function(input, output, session) {
   rv <- shiny::reactiveValues(
     list = list(),
     ds = NULL,
-    input = exists("webResearch_data"),
     local_temp = NULL,
     ready = NULL,
     test = "no",
@@ -145,33 +146,6 @@ server <- function(input, output, session) {
     shiny::req(from_env$data())
     rv$data_original <- from_env$data()
   })
-
-  # ds <-
-  # shiny::reactive({
-  #   # input$file1 will be NULL initially. After the user selects
-  #   # and uploads a file, head of that data file by default,
-  #   # or all rows if selected, will be shown.
-  #   # if (v$input) {
-  #   #   out <- webResearch_data
-  #   # } else if (input$source == "file") {
-  #   #   req(data_file$data())
-  #   #   out <- data_file$data()
-  #   # } else if (input$source == "redcap") {
-  #   #   req(purrr::pluck(data_redcap(), "data")())
-  #   #   out <- purrr::pluck(data_redcap(), "data")()
-  #   # }
-  #
-  #   req(rv$data_original)
-  #
-  #   rv$ds <- "loaded"
-  #
-  #   rv$data <- rv$data_original
-  #
-  #
-  #   # rv$data <- rv$data_original
-  #
-  #   # rv$data_original
-  # })
 
   ##############################################################################
   #########
@@ -362,7 +336,7 @@ server <- function(input, output, session) {
         {
           data <- data_filter() |>
             dplyr::mutate(dplyr::across(dplyr::where(is.character), as.factor)) |>
-            REDCapCAST::fct_drop.data.frame() |>
+            fct_drop.data.frame() |>
             factorize(vars = input$factor_vars)
 
           if (input$strat_var == "none") {

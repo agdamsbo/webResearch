@@ -56,8 +56,8 @@ tm_variable_browser_module <- tm_variable_browser(
 
 filters <- teal::teal_slices()
 
-app_source <- "https://github.com/agdamsbo/webresearch"
-gh_issues_page <- "https://github.com/agdamsbo/webresearch/issues"
+app_source <- "https://github.com/agdamsbo/freesearcheR"
+gh_issues_page <- "https://github.com/agdamsbo/freesearcheR/issues"
 
 header <- tags$span(
   style = "display: flex; align-items: center; justify-content: space-between; margin: 10px 0 10px 0;",

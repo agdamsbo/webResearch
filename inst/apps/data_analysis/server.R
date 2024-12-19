@@ -1,7 +1,3 @@
-# project.aid::merge_scripts(list.files("R/",full.names = TRUE),dest = here::here("app/functions.R"))
-# source(here::here("app/functions.R"))
-
-# source("https://raw.githubusercontent.com/agdamsbo/webResearch/refs/heads/main/app/functions.R")
 
 library(readr)
 library(MASS)
@@ -19,7 +15,7 @@ library(quarto)
 library(here)
 library(broom)
 library(broom.helpers)
-library(REDCapCAST)
+# library(REDCapCAST)
 library(easystats)
 library(patchwork)
 library(DHARMa)
@@ -32,6 +28,17 @@ if (file.exists(here::here("functions.R"))) {
   source(here::here("functions.R"))
 }
 
+#' freesearcheR server
+#'
+#' @param input input
+#' @param output output
+#' @param session session
+#'
+#' @returns server
+#' @export
+#' @importFrom REDCapCAST numchar2fct
+#'
+#' @examples
 server <- function(input, output, session) {
   ## Listing files in www in session start to keep when ending and removing
   ## everything else.
@@ -68,7 +75,7 @@ server <- function(input, output, session) {
       out <- out |>
         (\(.x){
           suppressWarnings(
-            REDCapCAST::numchar2fct(.x)
+            numchar2fct(.x)
           )
         })()
     }
