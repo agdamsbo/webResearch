@@ -118,6 +118,7 @@ cut.hms <- function(x, breaks, ...) {
 #' @examples
 #' readr::parse_datetime(c("1992-02-01 01:00:20", "1992-02-06 03:00:20", "1992-05-01 01:20:20", "1992-09-01 08:20:20", "1999-02-01 21:20:20", "1992-12-01 03:02:20")) |> cut(2)
 #' readr::parse_datetime(c("1992-02-01 01:00:20", "1992-02-06 03:00:20", "1992-05-01 01:20:20", "1992-09-01 08:20:20", "1999-02-01 21:20:20", "1992-12-01 03:02:20")) |> cut(breaks="weekday")
+#' readr::parse_datetime(c("1992-02-01 01:00:20", "1992-02-06 03:00:20", "1992-05-01 01:20:20", "1992-09-01 08:20:20", "1999-02-01 21:20:20", "1992-12-01 03:02:20")) |> cut(breaks="month_only")
 cut.POSIXt <- function(x, breaks, right = FALSE, include.lowest = TRUE, start.on.monday=TRUE, ...) {
   breaks_o <- breaks
   # browser()
@@ -138,6 +139,10 @@ cut.POSIXt <- function(x, breaks, right = FALSE, include.lowest = TRUE, start.on
       days <- days[c(7,1:6)]
     }
     out <- factor(weekdays(x),levels=days) |> forcats::fct_drop()
+  } else if (identical(breaks,"month_only")){
+    ms <- paste0("1970-",1:12,"-01") |> as.Date() |> months()
+
+    out <- factor(months(x),levels=ms) |> forcats::fct_drop()
   } else {
   ## Doesn't really work very well for breaks other than the special character cases as right border is excluded
   out <- base::cut.POSIXt(x, breaks=breaks,right=right,...) |> forcats::fct_drop()
@@ -146,7 +151,7 @@ cut.POSIXt <- function(x, breaks, right = FALSE, include.lowest = TRUE, start.on
   l <- levels(out)
   if (is.numeric(breaks_o)) {
     l <- breaks
-  } else if (is.character(breaks) && length(breaks) == 1 && !identical(breaks,"weekday")) {
+  } else if (is.character(breaks) && length(breaks) == 1 && !(identical(breaks,"weekday") | identical(breaks,"month_only"))) {
     if (include.lowest) {
       if (right) {
         l <- c(l, min(as.character(x)))
@@ -180,6 +185,10 @@ cut.Date <- function(x,breaks,start.on.monday=TRUE,...){
       days <- days[c(7,1:6)]
     }
     out <- factor(weekdays(x),levels=days) |> forcats::fct_drop()
+  } else if (identical(breaks,"month_only")){
+    ms <- paste0("1970-",1:12,"-01") |> as.Date() |> months()
+
+    out <- factor(months(x),levels=ms) |> forcats::fct_drop()
   } else {
     ## Doesn't really work very well for breaks other than the special character cases as right border is excluded
     out <- base::cut.Date(x, breaks=breaks,...) |> forcats::fct_drop()
@@ -381,6 +390,7 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
             "weekday",
             "week",
             "month",
+            "month_only",
             "quarter",
             "year"
           )
@@ -407,7 +417,7 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
           inputId = session$ns("method"),
           label = i18n("Method:"),
           choices = choices,
-          selected = "quantile",
+          selected = NULL,
           width = "100%"
         )
       })
@@ -450,6 +460,7 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
           "weekday",
           "week",
           "month",
+          "month_only",
           "quarter",
           "year"
         )) {
@@ -483,7 +494,7 @@ cut_variable_server <- function(id, data_r = reactive(NULL)) {
         variable <- req(input$variable)
         data[[paste0(variable, "_cut")]] <- cut(
           x = data[[variable]],
-          breaks = if (input$method %in% c("day", "weekday", "week", "month", "quarter", "year", "hour")) input$method else breaks_r()$brks,
+          breaks = if (input$method %in% c("day", "weekday", "week", "month", "month_only", "quarter", "year", "hour")) input$method else breaks_r()$brks,
           include.lowest = input$include_lowest,
           right = input$right
         )
