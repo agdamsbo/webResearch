@@ -164,3 +164,21 @@ file_export <- function(data, output.format = c("df", "teal", "list"), filename,
 
   out
 }
+
+
+#' Default data parsing
+#'
+#' @param data
+#'
+#' @returns data.frame or tibble
+#' @export
+#'
+#' @examples
+#' mtcars |> str()
+#' mtcars |> default_parsing() |> str()
+default_parsing <- function(data){
+  data |>
+    REDCapCAST::parse_data() |>
+    REDCapCAST::as_factor() |>
+    REDCapCAST::numchar2fct()
+}
