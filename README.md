@@ -2,6 +2,9 @@
 
 <!-- badges: start -->
 
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![rhub](https://github.com/agdamsbo/freesearcheR/actions/workflows/rhub.yaml/badge.svg)](https://github.com/agdamsbo/freesearcheR/actions/workflows/rhub.yaml)
+[![freesearcheR](https://img.shields.io/badge/Shiny-shinyapps.io-blue?style=flat&labelColor=white&logo=RStudio&logoColor=blue)](https://agdamsbo.shinyapps.io/freesearcheR/)
 <!-- badges: end -->
 
 This package is the backbone of the free and open browser based data exploration and analysis tool with publication ready output.
@@ -49,7 +52,10 @@ The ***freesearcheR***-tool can also be launched locally. Any data.frame availab
 require("devtools")
 devtools::install_github("agdamsbo/freesearcheR")
 library(freesearcheR)
-
+# By loading mtcars to the environment, it will be available 
+# in the interface like any other data.frame
+data(mtcars) 
+shiny_freesearcheR()
 ```
 
 
